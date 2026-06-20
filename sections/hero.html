@@ -81,24 +81,30 @@
         </a>
       </div>
 
-      <!-- Contact Us quick-reach -->
-      <div class="hero-contact fade-up" data-delay="0.44">
-        <a href="#contact" class="hero-contact-btn" aria-label="Contact the hotel">
+      <!-- Contact Us Dropdown Widget -->
+      <div class="hero-contact-widget fade-up" data-delay="0.44">
+        <button class="hero-contact-btn" id="heroContactToggle" aria-expanded="false" aria-controls="heroContactDropdown" aria-label="Toggle contact information">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.58 3.38 2 2 0 0 1 3.54 1h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 8.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
           </svg>
           Contact Us
-        </a>
-        <span class="hero-contact-sep" aria-hidden="true"></span>
-        <a href="tel:+18007807234" class="hero-contact-phone" aria-label="Toll-free US and Canada">
-          <span class="hero-contact-label">Toll Free (US &amp; Canada)</span>
-          <span class="hero-contact-number">1 (800) 780-7234</span>
-        </a>
-        <span class="hero-contact-sep" aria-hidden="true"></span>
-        <a href="tel:+254719063000" class="hero-contact-phone" aria-label="Hotel direct number">
-          <span class="hero-contact-label">Hotel Direct</span>
-          <span class="hero-contact-number">+254 719 063 000</span>
-        </a>
+        </button>
+        
+        <div class="hero-contact-dropdown" id="heroContactDropdown" aria-hidden="true">
+          <a href="tel:+18007807234" class="hero-contact-phone" aria-label="Toll-free US and Canada">
+            <span class="hero-contact-label">Toll Free (US &amp; Canada)</span>
+            <span class="hero-contact-number">1 (800) 780-7234</span>
+          </a>
+          <div class="hero-contact-dropdown-sep"></div>
+          <a href="tel:+254719063000" class="hero-contact-phone" aria-label="Hotel direct number">
+            <span class="hero-contact-label">Hotel Direct</span>
+            <span class="hero-contact-number">+254 719 063 000</span>
+          </a>
+          <div class="hero-contact-dropdown-sep"></div>
+          <a href="#contact" class="hero-contact-link">
+            Open Full Contact Page &rarr;
+          </a>
+        </div>
       </div>
 
       <!-- Trust signals -->

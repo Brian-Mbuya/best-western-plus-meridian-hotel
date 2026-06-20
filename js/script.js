@@ -194,6 +194,46 @@ function init() {
     startTimer();
   })();
 
+  // Hero Contact Widget Toggle
+  (function initHeroContactToggle() {
+    // Wait for the hero section to be loaded into the DOM
+    const observer = new MutationObserver(() => {
+      const toggleBtn = document.getElementById('heroContactToggle');
+      const dropdown = document.getElementById('heroContactDropdown');
+      const widget = document.querySelector('.hero-contact-widget');
+      
+      if (toggleBtn && dropdown && widget) {
+        toggleBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          const isActive = widget.classList.contains('active');
+          
+          if (isActive) {
+            widget.classList.remove('active');
+            toggleBtn.setAttribute('aria-expanded', 'false');
+            dropdown.setAttribute('aria-hidden', 'true');
+          } else {
+            widget.classList.add('active');
+            toggleBtn.setAttribute('aria-expanded', 'true');
+            dropdown.setAttribute('aria-hidden', 'false');
+          }
+        });
+
+        // Close when clicking outside
+        document.addEventListener('click', (e) => {
+          if (widget.classList.contains('active') && !widget.contains(e.target)) {
+            widget.classList.remove('active');
+            toggleBtn.setAttribute('aria-expanded', 'false');
+            dropdown.setAttribute('aria-hidden', 'true');
+          }
+        });
+        
+        observer.disconnect(); // Only run once
+      }
+    });
+    
+    // Start observing document.body for injected sections
+    observer.observe(document.body, { childList: true, subtree: true });
+  })();
 
   // ─── BOOKING WIDGET ────────────────────────────────────
   const checkinInput = document.getElementById('checkin');

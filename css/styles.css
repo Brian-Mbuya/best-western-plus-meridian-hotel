@@ -2245,70 +2245,113 @@
     /* ══════════════════════════════════════════════
        HERO: CONTACT US BAR
     ══════════════════════════════════════════════ */
-    .hero-contact {
-      display: flex;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 0;
+    .hero-contact-widget {
+      position: relative;
+      display: inline-flex;
       margin-bottom: 28px;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.14);
-      border-radius: 4px;
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      width: fit-content;
-      max-width: 100%;
     }
 
     .hero-contact-btn {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      padding: 11px 18px;
-      background: var(--maroon);
+      padding: 12px 24px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.2);
       color: white;
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 0.14em;
+      font-family: var(--font-body);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
       white-space: nowrap;
-      border-radius: 3px 0 0 3px;
-      transition: background 0.25s;
+      border-radius: 4px;
+      transition: background 0.3s, border-color 0.3s;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
     }
-    .hero-contact-btn:hover { background: var(--maroon-light); }
+    .hero-contact-btn:hover { 
+      background: rgba(255, 255, 255, 0.15);
+      border-color: rgba(255, 255, 255, 0.4);
+    }
 
-    .hero-contact-sep {
-      display: inline-block;
-      width: 1px;
-      height: 36px;
-      background: rgba(255,255,255,0.14);
-      flex-shrink: 0;
+    .hero-contact-dropdown {
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 0;
+      width: 280px;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 6px;
+      padding: 8px 0;
+      display: flex;
+      flex-direction: column;
+      
+      /* Animation properties */
+      opacity: 0;
+      transform: translateY(-8px);
+      pointer-events: none;
+      transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      z-index: 20;
+    }
+
+    .hero-contact-widget.active .hero-contact-dropdown {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    .hero-contact-dropdown-sep {
+      height: 1px;
+      background: rgba(255, 255, 255, 0.12);
+      margin: 4px 16px;
     }
 
     .hero-contact-phone {
-      display: inline-flex;
+      display: flex;
       flex-direction: column;
-      padding: 7px 14px;
-      gap: 1px;
+      padding: 12px 20px;
+      gap: 2px;
       text-decoration: none;
       transition: background 0.2s;
-      border-radius: 0;
     }
-    .hero-contact-phone:hover { background: rgba(255,255,255,0.08); }
+    .hero-contact-phone:hover { 
+      background: rgba(255, 255, 255, 0.08); 
+    }
 
     .hero-contact-label {
       font-size: 9px;
       font-weight: 500;
       letter-spacing: 0.1em;
       text-transform: uppercase;
-      color: rgba(255,255,255,0.48);
+      color: rgba(255, 255, 255, 0.55);
     }
 
     .hero-contact-number {
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 600;
-      color: rgba(255,255,255,0.88);
+      color: rgba(255, 255, 255, 0.95);
       letter-spacing: 0.03em;
+    }
+
+    .hero-contact-link {
+      display: flex;
+      align-items: center;
+      padding: 12px 20px;
+      font-family: var(--font-body);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.8);
+      text-decoration: none;
+      transition: background 0.2s, color 0.2s;
+    }
+    .hero-contact-link:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: white;
     }
 
     /* ══════════════════════════════════════════════
@@ -2837,36 +2880,6 @@
        RESPONSIVE: HERO CONTACT
     ══════════════════════════════════════════════ */
     @media (max-width: 768px) {
-      .hero-contact {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        width: 100%;
-        border-radius: 6px;
-      }
-      .hero-contact-btn { 
-        grid-column: 1 / -1;
-        border-radius: 5px 5px 0 0; 
-        justify-content: center; 
-        padding: 12px; 
-      }
-      .hero-contact-sep { display: none; }
-      .hero-contact-phone { 
-        padding: 12px 8px; 
-        border-top: 1px solid rgba(255,255,255,0.16);
-        align-items: center;
-      }
-      .hero-contact-phone:nth-of-type(2) {
-        border-right: 1px solid rgba(255,255,255,0.16);
-      }
-      .hero-contact-label {
-        font-size: 9px;
-        text-align: center;
-      }
-      .hero-contact-number {
-        font-size: 12px;
-        text-align: center;
-      }
-
       /* Meetings layout */
       .conf-layout {
         grid-template-columns: 1fr;
