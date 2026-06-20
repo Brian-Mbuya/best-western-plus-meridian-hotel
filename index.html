@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Best Western Plus Meridian Hotel | Nairobi CBD</title>
+
+  <!-- Primary SEO -->
+  <meta name="description"
+    content="Best Western Plus Meridian Hotel — 4-star hotel in the heart of Nairobi CBD. 128 rooms, rooftop pool, Rendezvous Restaurant, Kyber Hall for up to 350 guests. Book direct for best rates." />
+  <link rel="canonical" href="https://www.meridiannairobi.com/" />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Best Western Plus Meridian Hotel | Nairobi CBD" />
+  <meta property="og:description"
+    content="4-star hotel at the heart of Nairobi's CBD. Business, leisure, dining and events." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://www.meridiannairobi.com/" />
+  <meta property="og:image" content="https://www.meridiannairobi.com/images/gallery/hero/exterior.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:locale" content="en_KE" />
+  <meta property="og:site_name" content="Best Western Plus Meridian Hotel" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Best Western Plus Meridian Hotel | Nairobi CBD" />
+  <meta name="twitter:description"
+    content="4-star hotel at the heart of Nairobi's CBD. Business, leisure, dining and events." />
+  <meta name="twitter:image" content="https://www.meridiannairobi.com/images/gallery/hero/exterior.jpg" />
+
+  <!-- Hotel structured data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Hotel",
+    "name": "Best Western Plus Meridian Hotel",
+    "url": "https://www.meridiannairobi.com/",
+    "image": "https://www.meridiannairobi.com/images/gallery/hero/exterior.jpg",
+    "telephone": "+254204402186",
+    "priceRange": "$$",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "6th Muranga Road, Off Moi Avenue",
+      "addressLocality": "Nairobi",
+      "postalCode": "00100",
+      "addressCountry": "KE"
+    },
+    "starRating": { "@type": "Rating", "ratingValue": "4" },
+    "numberOfRooms": "128",
+    "amenityFeature": [
+      { "@type": "LocationFeatureSpecification", "name": "Free Wi-Fi", "value": true },
+      { "@type": "LocationFeatureSpecification", "name": "Outdoor Pool", "value": true },
+      { "@type": "LocationFeatureSpecification", "name": "Fitness Center", "value": true },
+      { "@type": "LocationFeatureSpecification", "name": "Free Parking", "value": true }
+    ]
+  }
+  </script>
+
+  <!-- Fonts: preconnect + swap to avoid invisible-text flash -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap"
+    rel="stylesheet" />
+
+  <!--
+    NOTE: react / react-dom / babel <script> tags from the previous build were removed here.
+    Nothing in script.js calls React — they were three unused blocking network requests
+    on every page load. If a future rebuild actually needs React, re-add them then.
+  -->
+
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+
+<body>
+
+  <!-- Scroll progress bar -->
+  <div id="scroll-progress" aria-hidden="true"></div>
+
+  <!-- Back to top button -->
+  <button id="back-to-top" aria-label="Back to top">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+      <polyline points="18 15 12 9 6 15"/>
+    </svg>
+  </button>
+
+  <!-- ============================================================
+       PAGE INTRO — luxury curtain reveal
+       Runs once per session (sessionStorage flag prevents replay).
+       aria-hidden so screen-readers skip the decorative animation.
+  ============================================================ -->
+  <div id="page-intro" aria-hidden="true" role="presentation">
+    <!-- Two curtain halves -->
+    <div class="intro-curtain-l"></div>
+    <div class="intro-curtain-r"></div>
+    <!-- Logo + tagline centred over curtains -->
+    <div class="intro-logo-wrap">
+      <img src="gallery/logo1.jpg" alt="" />
+      <div class="intro-tagline">Nairobi · Est. 1994</div>
+    </div>
+    <!-- Decorative horizontal rule below logo -->
+    <div class="intro-border"></div>
+  </div>
+
+  <div id="navbar-mount"></div>
+  <div id="mobilemenu-mount"></div>
+
+  <main id="main-content">
+    <div id="hero-mount"></div>
+    <div id="booking-mount"></div>
+    <div id="intro-mount"></div>
+    <div id="rooms-mount"></div>
+    <div id="dining-mount"></div>
+    <div id="meetings-mount"></div>
+    <div id="amenities-mount"></div>
+    <div id="rooftop-mount"></div>
+    <div id="business-mount"></div>
+    <div id="neighborhood-mount"></div>
+    <div id="gallery-mount"></div>
+    <div id="location-mount"></div>
+    <div id="contact-mount"></div>
+  </main>
+
+  <div id="footer-mount"></div>
+
+  <div class="toast" id="toast" style="display:none;" role="alert" aria-live="assertive"></div>
+
+  <!-- Section loader runs first and renders each include before page-behavior script runs -->
+  <script src="js/include-sections.js"></script>
+  <script src="js/script.js" defer></script>
+</body>
+
+</html>

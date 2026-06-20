@@ -1,0 +1,134 @@
+<section class="hero" aria-label="Hotel hero">
+
+  <!-- ══════════════════════════════════════════════
+           HERO SLIDESHOW
+           5 images, 7-second auto-advance, crossfade only.
+           Slide 1 loads eagerly; 2–5 are lazy-loaded.
+           JS controller in script.js (initHeroSlideshow).
+      ══════════════════════════════════════════════ -->
+  <div class="hero-slides" id="hero-slides" aria-hidden="true">
+
+    <div class="hero-slide active" data-slide="0">
+      <img src="gallery/hero/night-rooftop.jpg" alt="Best Western Plus Meridian Hotel rooftop lounge at night"
+        width="1920" height="1080" loading="eager" fetchpriority="high" />
+    </div>
+
+    <div class="hero-slide" data-slide="1">
+      <img src="gallery/hero/129108159.jpg" alt="Our entrance" width="1024" height="648" loading="lazy" />
+    </div>
+
+    <div class="hero-slide" data-slide="2">
+      <img src="gallery/rooftop/rooftop-pool.jpg" alt="Rooftop pool at Best Western Plus Meridian Hotel" width="1920"
+        height="1080" loading="lazy" />
+    </div>
+
+    <div class="hero-slide" data-slide="3">
+      <img src="gallery/hero/lobby.jpg" alt="Marble reception lobby" width="1920" height="1080" loading="lazy" />
+    </div>
+
+    <div class="hero-slide" data-slide="4">
+      <img src="gallery/rooms/suite.webp" alt="Premium king room with tufted headboard" width="1920" height="1080"
+        loading="lazy" />
+    </div>
+
+    <div class="hero-slide" data-slide="5">
+      <img src="gallery/hero/exterior.jpg" alt="Best Western Plus Meridian Hotel exterior, Nairobi CBD" width="1920"
+        height="1080" loading="lazy" />
+    </div>
+
+  </div>
+
+  <!-- Layered overlay — left-edge depth + strong bottom vignette -->
+  <div class="hero-overlay" aria-hidden="true"></div>
+
+  <!-- Hero content -->
+  <div class="hero-content container">
+    <div class="hero-inner">
+
+      <!-- Eyebrow badge -->
+      <div class="hero-badge fade-in" role="text" aria-label="Best Western Plus, 4-Star Nairobi">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="#e8b84b" aria-hidden="true">
+          <polygon
+            points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+        </svg>
+        <span>Best Western Plus&nbsp;&nbsp;·&nbsp;&nbsp;4-Star Nairobi</span>
+      </div>
+
+      <!-- Headline -->
+      <h1 class="hero-title fade-up">
+        Where Nairobi<br />meets&nbsp;<em>exceptional</em>.
+      </h1>
+
+      <!-- Sub-copy -->
+      <p class="hero-sub fade-up" data-delay="0.18">
+        A four-star address at the heart of Nairobi's CBD —
+        refined rooms, rooftop dining, and conference spaces for up to 350.
+      </p>
+
+      <!-- CTAs -->
+      <div class="hero-ctas fade-up" data-delay="0.32">
+        <a href="https://www.bestwestern.com/en_US/book/hotel-rooms.75152.html" target="_blank" rel="noopener"
+          class="hero-btn-primary" aria-label="Reserve your stay — opens Best Western booking">
+          Reserve Your Stay
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            aria-hidden="true">
+            <line x1="5" y1="12" x2="19" y2="12" />
+            <polyline points="12 5 19 12 12 19" />
+          </svg>
+        </a>
+        <a href="#rooms" class="hero-btn-ghost">
+          Explore Rooms
+        </a>
+      </div>
+
+      <!-- Contact Us quick-reach -->
+      <div class="hero-contact fade-up" data-delay="0.44">
+        <a href="#contact" class="hero-contact-btn" aria-label="Contact the hotel">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.58 3.38 2 2 0 0 1 3.54 1h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 8.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+          </svg>
+          Contact Us
+        </a>
+        <span class="hero-contact-sep" aria-hidden="true"></span>
+        <a href="tel:+18007807234" class="hero-contact-phone" aria-label="Toll-free US and Canada">
+          <span class="hero-contact-label">Toll Free (US &amp; Canada)</span>
+          <span class="hero-contact-number">1 (800) 780-7234</span>
+        </a>
+        <span class="hero-contact-sep" aria-hidden="true"></span>
+        <a href="tel:+254719063000" class="hero-contact-phone" aria-label="Hotel direct number">
+          <span class="hero-contact-label">Hotel Direct</span>
+          <span class="hero-contact-number">+254 719 063 000</span>
+        </a>
+      </div>
+
+      <!-- Trust signals -->
+      <div class="hero-trust fade-up" data-delay="0.46" aria-label="Included with your stay">
+        <span class="hero-trust-item">Complimentary Breakfast</span>
+        <span class="hero-trust-sep" aria-hidden="true"></span>
+        <span class="hero-trust-item">Free Wi-Fi &amp; Parking</span>
+        <span class="hero-trust-sep" aria-hidden="true"></span>
+        <span class="hero-trust-item">Best Rate Guarantee</span>
+        <span class="hero-trust-sep" aria-hidden="true"></span>
+        <span class="hero-trust-item">BWR Points Earned</span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Slideshow dots -->
+  <div class="hero-dots" id="hero-dots" aria-label="Slideshow navigation">
+    <button class="hero-dot active" data-dot="0" aria-label="Slide 1 of 6" aria-current="true"></button>
+    <button class="hero-dot" data-dot="1" aria-label="Slide 2 of 6"></button>
+    <button class="hero-dot" data-dot="2" aria-label="Slide 3 of 6"></button>
+    <button class="hero-dot" data-dot="3" aria-label="Slide 4 of 6"></button>
+    <button class="hero-dot" data-dot="4" aria-label="Slide 5 of 6"></button>
+    <button class="hero-dot" data-dot="5" aria-label="Slide 6 of 6"></button>
+  </div>
+
+  <!-- Scroll cue -->
+  <div class="hero-scroll" aria-hidden="true">
+    <div class="scroll-line"></div>
+    <span>Scroll</span>
+  </div>
+
+</section>

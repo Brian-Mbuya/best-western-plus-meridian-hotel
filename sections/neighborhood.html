@@ -1,0 +1,69 @@
+    <section class="section neighborhood-section" id="neighborhood" aria-labelledby="neighborhood-heading">
+      <div class="container">
+        <p class="eyebrow">Discover Nairobi</p>
+        <div class="accent-line"></div>
+        <h2 class="display-lg fade-up" id="neighborhood-heading">What's nearby</h2>
+        <p class="body-lg fade-up" style="max-width:560px; margin-top:16px;">The Meridian sits at the center of
+          Nairobi's most walkable cultural and commercial district. Everything you need is closer than you think.</p>
+
+        <div class="explorer-layout fade-up" id="explorer" role="region"
+          aria-label="Neighborhood attraction explorer">
+
+          <!-- LEFT: Tab list + attraction list -->
+          <div class="explorer-sidebar">
+            <div class="explorer-tabs" role="tablist" aria-label="Attraction categories">
+              <button class="explorer-tab active" role="tab" aria-selected="true" data-category="landmarks"
+                id="tab-landmarks" aria-controls="explorer-panel">Landmarks</button>
+              <button class="explorer-tab" role="tab" aria-selected="false" data-category="culture" id="tab-culture"
+                aria-controls="explorer-panel">Culture</button>
+              <button class="explorer-tab" role="tab" aria-selected="false" data-category="transport" id="tab-transport"
+                aria-controls="explorer-panel">Transport</button>
+              <button class="explorer-tab" role="tab" aria-selected="false" data-category="parks" id="tab-parks"
+                aria-controls="explorer-panel">Parks</button>
+            </div>
+            <div class="explorer-list" id="explorer-list" role="listbox" aria-label="Nearby attractions"></div>
+          </div>
+
+          <!-- RIGHT: Map + detail panel -->
+          <div class="explorer-map-wrap" id="explorer-panel" role="region" aria-label="Map and attraction details" aria-live="polite">
+
+            <!-- Embedded Google Map — Best Western Plus Meridian Hotel -->
+            <div class="explorer-map-embed">
+              <iframe
+                id="explorer-map-iframe"
+                title="Map showing Best Western Plus Meridian Hotel location in Nairobi CBD"
+                width="100%"
+                height="100%"
+                style="border:0;display:block;"
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3988.817798823!2d36.8193!3d-1.2836!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x182f10d63f14f1c1%3A0xa0a27f4d37f75a21!2sBest%20Western%20Plus%20Meridian%20Hotel!5e0!3m2!1sen!2ske!4v1718000000000!5m2!1sen!2ske"
+                allowfullscreen>
+              </iframe>
+              <!-- Attraction pin overlay (shown when item selected) -->
+              <div class="explorer-map-pin-overlay" id="map-pin-overlay" aria-hidden="true"></div>
+            </div>
+
+            <!-- Detail card below map -->
+            <div class="explorer-map-detail" id="explorer-detail">
+              <p class="eyebrow">Select a destination</p>
+              <p class="display-md" style="color:var(--muted); margin-top:8px;">Choose an attraction to see how close it
+                is from the Meridian.</p>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- "Get Directions" CTA -->
+        <div style="text-align:center;margin-top:40px;" class="fade-up">
+          <a href="https://maps.google.com/?q=Best+Western+Plus+Meridian+Hotel+Nairobi" target="_blank" rel="noopener"
+            class="btn-outline" style="display:inline-flex;align-items:center;gap:10px;" aria-label="Open hotel location in Google Maps">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+              <circle cx="12" cy="10" r="3"/>
+            </svg>
+            Get Directions
+          </a>
+        </div>
+      </div>
+    </section>
