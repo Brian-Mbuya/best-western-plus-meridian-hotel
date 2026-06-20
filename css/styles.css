@@ -1,5 +1,5 @@
     :root {
-      /* BRAND — Best Western Plus Meridian Hotel (colors verified against official logo artwork) */
+      /* BRAND â€” Best Western Plus Meridian Hotel (colors verified against official logo artwork) */
       --maroon: #8C1938;
       /* Primary brand color */
       --maroon-dark: #5C1226;
@@ -11,11 +11,11 @@
       --maroon-black: #2E0813;
       /* Footer / deepest panel */
       --maroon-light: #B23A56;
-      /* Lighter brand tint — hover states, gradient highlights */
+      /* Lighter brand tint â€” hover states, gradient highlights */
       --maroon-pale: #F5E6EA;
-      /* Pale brand tint — soft chips/badges on light backgrounds */
+      /* Pale brand tint â€” soft chips/badges on light backgrounds */
       --charcoal: #2B2B2E;
-      /* Secondary neutral — matches the wordmark gray in the official logo */
+      /* Secondary neutral â€” matches the wordmark gray in the official logo */
       --ivory: #F8F4EF;
       --white: #FFFFFF;
       --text: #1A1A1A;
@@ -446,7 +446,7 @@
       border-radius: 4px;
     }
 
-    /* Legacy text fallback — hidden when logo img is present */
+    /* Legacy text fallback â€” hidden when logo img is present */
     .nav-logo .nav-logo-text {
       font-family: var(--font-display);
       font-size: 1.1rem;
@@ -585,22 +585,22 @@
       bottom: -8px;
     }
 
-    /* ═══════════════════════════════════════════════════════
-       HERO — Crossfade Slideshow + Premium Visual Refinement
-       ═══════════════════════════════════════════════════════
+    /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+       HERO â€” Crossfade Slideshow + Premium Visual Refinement
+       â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
        Architecture:
-         .hero              — full-viewport container
-         .hero-slides       — stacking layer for all slide images
-         .hero-slide        — individual image wrapper (opacity: 0 default)
-         .hero-slide.active — the visible slide (opacity: 1)
-         .hero-overlay      — layered gradient over the entire slideshow
-         .hero-content      — text/CTA layer, above overlay (z-index: 2)
-         .hero-dots         — slide navigation, bottom-left
-         .hero-scroll       — animated scroll cue, bottom-right
+         .hero              â€” full-viewport container
+         .hero-slides       â€” stacking layer for all slide images
+         .hero-slide        â€” individual image wrapper (opacity: 0 default)
+         .hero-slide.active â€” the visible slide (opacity: 1)
+         .hero-overlay      â€” layered gradient over the entire slideshow
+         .hero-content      â€” text/CTA layer, above overlay (z-index: 2)
+         .hero-dots         â€” slide navigation, bottom-left
+         .hero-scroll       â€” animated scroll cue, bottom-right
 
        Transition: CSS opacity only. No zoom, no parallax, no ken-burns.
        Duration: 1s crossfade, 7s interval (controlled in script.js).
-    ═══════════════════════════════════════════════════════ */
+    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
     .hero {
       position: relative;
@@ -612,7 +612,7 @@
       background: #0a060a;
     }
 
-    /* ── Slideshow container ── */
+    /* â”€â”€ Slideshow container â”€â”€ */
     .hero-slides {
       position: absolute;
       inset: 0;
@@ -652,11 +652,11 @@
     .hero-slide:nth-child(5) img { object-position: center 35%; }  /* premium room  */
     .hero-slide:nth-child(6) img { object-position: center 50%; }  /* exterior      */
 
-    /* ── Overlay — layered strategy ──
+    /* â”€â”€ Overlay â€” layered strategy â”€â”€
        Left gradient:  ensures text column always on dark bg
        Bottom vignette: grounds the content area
        Top vignette:   subtly frames the nav bar
-    ── */
+    â”€â”€ */
     .hero-overlay {
       position: absolute;
       inset: 0;
@@ -667,7 +667,7 @@
         linear-gradient(to bottom, rgba(6,2,6,0.52) 0%,  transparent 24%);
     }
 
-    /* ── Content layer ── */
+    /* â”€â”€ Content layer â”€â”€ */
     .hero-content {
       position: relative;
       z-index: 2;
@@ -676,12 +676,12 @@
       padding: clamp(96px, 13vh, 152px) 0 clamp(80px, 11vh, 128px);
     }
 
-    /* Text column — constrained to left half for breathing room */
+    /* Text column â€” constrained to left half for breathing room */
     .hero-inner {
       max-width: 600px;
     }
 
-    /* ── Eyebrow badge ── */
+    /* â”€â”€ Eyebrow badge â”€â”€ */
     .hero-badge {
       display: inline-flex;
       align-items: center;
@@ -704,7 +704,7 @@
       color: rgba(255,255,255,0.72);
     }
 
-    /* ── Headline ── */
+    /* â”€â”€ Headline â”€â”€ */
     .hero-title {
       font-family: var(--font-display);
       /* Range: 2.1rem at smallest to 4rem at widest.
@@ -717,14 +717,14 @@
       letter-spacing: -0.01em;
     }
 
-    /* Italic em — warm ivory tone, not magenta */
+    /* Italic em â€” warm ivory tone, not magenta */
     .hero-title em {
       font-style: italic;
       font-weight: 300;
       color: rgba(255, 248, 232, 1);
     }
 
-    /* ── Sub-copy ── */
+    /* â”€â”€ Sub-copy â”€â”€ */
     .hero-sub {
       font-size: clamp(0.875rem, 1.35vw, 0.975rem);
       color: rgba(255,255,255,0.58);
@@ -734,23 +734,23 @@
       font-weight: 400;
     }
 
-    /* ── CTA row ── */
+    /* â”€â”€ CTA row â”€â”€ */
     .hero-ctas {
       display: flex;
       align-items: center;
       gap: 18px;
       flex-wrap: wrap;
-      margin-bottom: 24px;
+      margin-bottom: 18px;
     }
 
     .hero-ctas-group {
-      display: flex;
+      display: inline-flex;
       flex-direction: column;
-      align-items: flex-start;
+      align-items: center;
       margin-bottom: 48px;
     }
 
-    /* Primary — filled maroon, strong hierarchy */
+    /* Primary â€” filled maroon, strong hierarchy */
     .hero-btn-primary {
       display: inline-flex;
       align-items: center;
@@ -777,7 +777,7 @@
     .hero-btn-primary svg { transition: transform 0.25s; }
     .hero-btn-primary:hover svg { transform: translateX(4px); }
 
-    /* Ghost — hairline border, no fill */
+    /* Ghost â€” hairline border, no fill */
     .hero-btn-ghost {
       display: inline-flex;
       align-items: center;
@@ -800,7 +800,7 @@
       color: #fff;
     }
 
-    /* ── Trust signal row ── */
+    /* â”€â”€ Trust signal row â”€â”€ */
     .hero-trust {
       display: flex;
       align-items: center;
@@ -828,7 +828,7 @@
       flex-shrink: 0;
     }
 
-    /* ── Dot navigation ── */
+    /* â”€â”€ Dot navigation â”€â”€ */
     .hero-dots {
       position: absolute;
       bottom: 36px;
@@ -860,7 +860,7 @@
       background: rgba(255,255,255,0.6);
     }
 
-    /* ── Scroll indicator ── */
+    /* â”€â”€ Scroll indicator â”€â”€ */
     .hero-scroll {
       position: absolute;
       bottom: 32px;
@@ -2284,9 +2284,9 @@
       transform-origin: left;
     }
 
-    /* ══════════════════════════════════════════════
+    /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
        MEETINGS: NEW CONFERENCE PLANNER LAYOUT
-    ══════════════════════════════════════════════ */
+    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
     .conf-layout {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -2531,9 +2531,9 @@
       border-top: 1px solid var(--border);
     }
 
-    /* ══════════════════════════════════════════════
+    /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
        NEIGHBORHOOD: MAP EMBED
-    ══════════════════════════════════════════════ */
+    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
     .explorer-map-wrap {
       display: flex;
       flex-direction: column;
@@ -2568,9 +2568,9 @@
       min-height: 100px;
     }
 
-    /* ══════════════════════════════════════════════
+    /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
        GALLERY: FILTERS + GRID + LIGHTBOX
-    ══════════════════════════════════════════════ */
+    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
     .gallery-filters {
       display: flex;
       gap: 8px;
@@ -2761,9 +2761,9 @@
     .lightbox-prev { left: 20px; }
     .lightbox-next { right: 20px; }
 
-    /* ══════════════════════════════════════════════
+    /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
        SCROLL PROGRESS INDICATOR
-    ══════════════════════════════════════════════ */
+    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
     #scroll-progress {
       position: fixed;
       top: 0;
@@ -2776,9 +2776,9 @@
       pointer-events: none;
     }
 
-    /* ══════════════════════════════════════════════
+    /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
        BACK-TO-TOP BUTTON
-    ══════════════════════════════════════════════ */
+    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
     #back-to-top {
       position: fixed;
       bottom: 32px;
@@ -2806,10 +2806,28 @@
 
     #back-to-top:hover { background: var(--maroon-dark); }
 
-    /* ══════════════════════════════════════════════
+    /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
        RESPONSIVE: HERO CONTACT
-    ══════════════════════════════════════════════ */
+    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
     @media (max-width: 768px) {
+      /* Hero CTAs Mobile Stacking */
+      .hero-ctas-group {
+        width: 100%;
+        align-items: stretch;
+        margin-bottom: 32px;
+      }
+      .hero-ctas {
+        flex-direction: column;
+        align-items: stretch;
+        width: 100%;
+        gap: 16px;
+        margin-bottom: 16px;
+      }
+      .hero-btn-primary, .hero-btn-ghost {
+        width: 100%;
+        justify-content: center;
+      }
+
       /* Meetings layout */
       .conf-layout {
         grid-template-columns: 1fr;
@@ -2867,28 +2885,25 @@
       }
     }
 
+    /* Contact Section Arrival Effect */
+    @keyframes contactArrival {
+      0% {
+        opacity: 0;
+        transform: translateY(15px);
+        box-shadow: 0 0 0 rgba(140, 25, 56, 0);
+      }
+      50% {
+        opacity: 1;
+        transform: translateY(-2px);
+        box-shadow: 0 -10px 40px rgba(140, 25, 56, 0.15);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+        box-shadow: 0 0 0 rgba(140, 25, 56, 0);
+      }
+    }
 
- / *   C o n t a c t   S e c t i o n   A r r i v a l   E f f e c t   * / 
- @ k e y f r a m e s   c o n t a c t A r r i v a l   { 
-     0 %   { 
-         o p a c i t y :   0 ; 
-         t r a n s f o r m :   t r a n s l a t e Y ( 1 5 p x ) ; 
-         b o x - s h a d o w :   0   0   0   r g b a ( 1 4 0 ,   2 5 ,   5 6 ,   0 ) ; 
-     } 
-     5 0 %   { 
-         o p a c i t y :   1 ; 
-         t r a n s f o r m :   t r a n s l a t e Y ( - 2 p x ) ; 
-         b o x - s h a d o w :   0   - 1 0 p x   4 0 p x   r g b a ( 1 4 0 ,   2 5 ,   5 6 ,   0 . 1 5 ) ; 
-     } 
-     1 0 0 %   { 
-         o p a c i t y :   1 ; 
-         t r a n s f o r m :   t r a n s l a t e Y ( 0 ) ; 
-         b o x - s h a d o w :   0   0   0   r g b a ( 1 4 0 ,   2 5 ,   5 6 ,   0 ) ; 
-     } 
- } 
- 
- # c o n t a c t . c o n t a c t - a r r i v a l - e f f e c t   { 
-     a n i m a t i o n :   c o n t a c t A r r i v a l   1 s   e a s e - i n - o u t   f o r w a r d s ; 
- } 
-  
- 
+    #contact.contact-arrival-effect {
+      animation: contactArrival 1s ease-in-out forwards;
+    }
