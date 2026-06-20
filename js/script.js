@@ -194,39 +194,50 @@ function init() {
     startTimer();
   })();
 
-  // Hero Contact Widget Toggle
-  (function initHeroContactToggle() {
-    // Wait for the hero section to be loaded into the DOM
+  // Hero Contact Scroll & Arrival Effect
+  (function initHeroContactScroll() {
     const observer = new MutationObserver(() => {
-      const toggleBtn = document.getElementById('heroContactToggle');
-      const dropdown = document.getElementById('heroContactDropdown');
-      const widget = document.querySelector('.hero-contact-widget');
+      const scrollBtn = document.getElementById('heroContactScrollBtn');
+      const contactSection = document.getElementById('contact');
       
-      if (toggleBtn && dropdown && widget) {
-        toggleBtn.addEventListener('click', (e) => {
+      if (scrollBtn && contactSection) {
+        // Smooth scroll to contact
+        scrollBtn.addEventListener('click', (e) => {
           e.preventDefault();
-          const isActive = widget.classList.contains('active');
-          
-          if (isActive) {
-            widget.classList.remove('active');
-            toggleBtn.setAttribute('aria-expanded', 'false');
-            dropdown.setAttribute('aria-hidden', 'true');
-          } else {
-            widget.classList.add('active');
-            toggleBtn.setAttribute('aria-expanded', 'true');
-            dropdown.setAttribute('aria-hidden', 'false');
-          }
+          const targetPos = contactSection.getBoundingClientRect().top + window.scrollY;
+          window.scrollTo({
+            top: targetPos,
+            behavior: 'smooth'
+          });
         });
 
-        // Close when clicking outside
-        document.addEventListener('click', (e) => {
-          if (widget.classList.contains('active') && !widget.contains(e.target)) {
-            widget.classList.remove('active');
-            toggleBtn.setAttribute('aria-expanded', 'false');
-            dropdown.setAttribute('aria-hidden', 'true');
-          }
-        });
+        // Arrival effect using IntersectionObserver
+        const arrivalObserver = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              contactSection.classList.add('contact-arrival-effect');
+              
+              // Remove class after animation finishes (1s) to return to normal
+              setTimeout(() => {
+                contactSection.classList.remove('contact-arrival-effect');
+              }, 1000);
+              
+              // Only trigger once per page load
+              arrivalObserver.disconnect();
+            }
+          });
+        }, { threshold: 0.2 });
         
+        // Ensure we only observe after clicking the button?
+        // No, the user said "When the Contact section enters the viewport",
+        // but maybe they meant just naturally scrolling to it. Let's observe it!
+        scrollBtn.addEventListener('click', () => {
+          // If we want it strictly on click, we connect it here.
+          // The prompt says "When the Contact Us button is clicked: Smooth scroll... When the Contact section enters the viewport: Apply subtle premium arrival effect".
+          // This means if we scroll via the button, it triggers. 
+          arrivalObserver.observe(contactSection);
+        });
+
         observer.disconnect(); // Only run once
       }
     });

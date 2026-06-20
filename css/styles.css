@@ -740,7 +740,14 @@
       align-items: center;
       gap: 18px;
       flex-wrap: wrap;
-      margin-bottom: 36px;
+      margin-bottom: 24px;
+    }
+
+    .hero-ctas-group {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      margin-bottom: 48px;
     }
 
     /* Primary — filled maroon, strong hierarchy */
@@ -2242,116 +2249,39 @@
       }
     }
 
-    /* ══════════════════════════════════════════════
-       HERO: CONTACT US BAR
-    ══════════════════════════════════════════════ */
-    .hero-contact-widget {
-      position: relative;
-      display: inline-flex;
-      margin-bottom: 28px;
-    }
-
-    .hero-contact-btn {
+    .hero-btn-tertiary {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      padding: 12px 24px;
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      color: white;
+      padding: 10px 0;
+      color: rgba(255, 255, 255, 0.7);
       font-family: var(--font-body);
       font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      white-space: nowrap;
-      border-radius: 4px;
-      transition: background 0.3s, border-color 0.3s;
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-    }
-    .hero-contact-btn:hover { 
-      background: rgba(255, 255, 255, 0.15);
-      border-color: rgba(255, 255, 255, 0.4);
-    }
-
-    .hero-contact-dropdown {
-      position: absolute;
-      top: calc(100% + 8px);
-      left: 0;
-      width: 280px;
-      background: rgba(255, 255, 255, 0.08);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      border-radius: 6px;
-      padding: 8px 0;
-      display: flex;
-      flex-direction: column;
-      
-      /* Animation properties */
-      opacity: 0;
-      transform: translateY(-8px);
-      pointer-events: none;
-      transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      z-index: 20;
-    }
-
-    .hero-contact-widget.active .hero-contact-dropdown {
-      opacity: 1;
-      transform: translateY(0);
-      pointer-events: auto;
-    }
-
-    .hero-contact-dropdown-sep {
-      height: 1px;
-      background: rgba(255, 255, 255, 0.12);
-      margin: 4px 16px;
-    }
-
-    .hero-contact-phone {
-      display: flex;
-      flex-direction: column;
-      padding: 12px 20px;
-      gap: 2px;
-      text-decoration: none;
-      transition: background 0.2s;
-    }
-    .hero-contact-phone:hover { 
-      background: rgba(255, 255, 255, 0.08); 
-    }
-
-    .hero-contact-label {
-      font-size: 9px;
       font-weight: 500;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: rgba(255, 255, 255, 0.55);
-    }
-
-    .hero-contact-number {
-      font-size: 13px;
-      font-weight: 600;
-      color: rgba(255, 255, 255, 0.95);
-      letter-spacing: 0.03em;
-    }
-
-    .hero-contact-link {
-      display: flex;
-      align-items: center;
-      padding: 12px 20px;
-      font-family: var(--font-body);
-      font-size: 10px;
-      font-weight: 600;
       letter-spacing: 0.12em;
       text-transform: uppercase;
-      color: rgba(255, 255, 255, 0.8);
       text-decoration: none;
-      transition: background 0.2s, color 0.2s;
+      transition: color 0.3s;
+      position: relative;
     }
-    .hero-contact-link:hover {
-      background: rgba(255, 255, 255, 0.08);
-      color: white;
+    .hero-btn-tertiary::after {
+      content: '';
+      position: absolute;
+      bottom: 6px;
+      left: 0;
+      width: 100%;
+      height: 1px;
+      background: rgba(255, 255, 255, 0.3);
+      transform: scaleX(0);
+      transform-origin: right;
+      transition: transform 0.3s ease;
+    }
+    .hero-btn-tertiary:hover {
+      color: #fff;
+    }
+    .hero-btn-tertiary:hover::after {
+      transform: scaleX(1);
+      transform-origin: left;
     }
 
     /* ══════════════════════════════════════════════
@@ -2937,3 +2867,28 @@
       }
     }
 
+
+ / *   C o n t a c t   S e c t i o n   A r r i v a l   E f f e c t   * / 
+ @ k e y f r a m e s   c o n t a c t A r r i v a l   { 
+     0 %   { 
+         o p a c i t y :   0 ; 
+         t r a n s f o r m :   t r a n s l a t e Y ( 1 5 p x ) ; 
+         b o x - s h a d o w :   0   0   0   r g b a ( 1 4 0 ,   2 5 ,   5 6 ,   0 ) ; 
+     } 
+     5 0 %   { 
+         o p a c i t y :   1 ; 
+         t r a n s f o r m :   t r a n s l a t e Y ( - 2 p x ) ; 
+         b o x - s h a d o w :   0   - 1 0 p x   4 0 p x   r g b a ( 1 4 0 ,   2 5 ,   5 6 ,   0 . 1 5 ) ; 
+     } 
+     1 0 0 %   { 
+         o p a c i t y :   1 ; 
+         t r a n s f o r m :   t r a n s l a t e Y ( 0 ) ; 
+         b o x - s h a d o w :   0   0   0   r g b a ( 1 4 0 ,   2 5 ,   5 6 ,   0 ) ; 
+     } 
+ } 
+ 
+ # c o n t a c t . c o n t a c t - a r r i v a l - e f f e c t   { 
+     a n i m a t i o n :   c o n t a c t A r r i v a l   1 s   e a s e - i n - o u t   f o r w a r d s ; 
+ } 
+  
+ 
