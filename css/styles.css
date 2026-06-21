@@ -98,6 +98,20 @@
       }
     }
 
+    @keyframes fadeUpBlur {
+      from {
+        opacity: 0;
+        transform: translateY(28px);
+        filter: blur(8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+        filter: blur(0);
+      }
+    }
+
     @keyframes slideRight {
       from {
         transform: scaleX(0);
@@ -249,12 +263,20 @@
     .fade-up {
       opacity: 0;
       transform: translateY(28px);
-      transition: opacity 0.7s ease, transform 0.7s ease;
+      transition: opacity 0.7s ease, transform 0.7s ease, filter 0.9s ease;
     }
 
     .fade-up.visible {
       opacity: 1;
       transform: translateY(0);
+    }
+
+    .blur-reveal {
+      filter: blur(8px);
+    }
+
+    .blur-reveal.visible {
+      filter: blur(0);
     }
 
     .fade-in {
@@ -623,16 +645,14 @@
       position: absolute;
       inset: 0;
       opacity: 0;
-      /* 2s crossfade with a subtle zoom-out for a classy effect */
-      transition: opacity 2s ease-in-out, transform 6s ease-out;
-      transform: scale(1.05);
+      /* 1.5s cinematic crossfade */
+      transition: opacity 1.5s ease-in-out;
       pointer-events: none;
     }
 
     /* Active slide is fully visible */
     .hero-slide.active {
       opacity: 1;
-      transform: scale(1);
     }
 
     .hero-slide img {
@@ -642,6 +662,14 @@
       /* Different object-position per slide via nth-child */
       object-position: center center;
       display: block;
+      
+      /* Subtle Ken Burns zoom out of active, back to base when inactive */
+      transform: scale(1.0);
+      transition: transform 8s linear;
+    }
+    
+    .hero-slide.active img {
+      transform: scale(1.08);
     }
 
     /* Slide-specific crop positions for best composition */
@@ -662,9 +690,9 @@
       inset: 0;
       z-index: 1;
       background:
-        linear-gradient(to right,  rgba(6,2,6,0.78) 0%,  rgba(6,2,6,0.30) 52%, transparent 100%),
-        linear-gradient(to top,    rgba(6,2,6,0.90) 0%,  rgba(6,2,6,0.32) 42%, transparent 72%),
-        linear-gradient(to bottom, rgba(6,2,6,0.52) 0%,  transparent 24%);
+        linear-gradient(to right,  rgba(6,2,6,0.55) 0%,  rgba(6,2,6,0.15) 52%, transparent 100%),
+        linear-gradient(to top,    rgba(6,2,6,0.70) 0%,  rgba(6,2,6,0.20) 42%, transparent 72%),
+        linear-gradient(to bottom, rgba(6,2,6,0.35) 0%,  transparent 24%);
     }
 
     /* â”€â”€ Content layer â”€â”€ */

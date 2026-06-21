@@ -121,10 +121,14 @@ function init() {
   });
 
   // ─── HERO CONTENT ENTRANCE ─────────────────────────────
-  // data-delay attribute drives stagger (in seconds, matches CSS animation-delay)
+  // data-delay attribute drives stagger (in seconds)
   document.querySelectorAll('.hero .fade-up, .hero .fade-in').forEach((el) => {
-    const delay = el.dataset.delay || 0;
-    el.style.animation = `fadeUp 0.9s ease ${parseFloat(delay) + 0.1}s both`;
+    const delay = parseFloat(el.dataset.delay || 0);
+    if (el.classList.contains('blur-reveal')) {
+      el.style.animation = `fadeUpBlur 1s ease ${delay + 0.1}s both`;
+    } else {
+      el.style.animation = `fadeUp 0.9s ease ${delay + 0.1}s both`;
+    }
   });
 
   // ─── HERO SLIDESHOW ─────────────────────────────────────
@@ -136,7 +140,7 @@ function init() {
 
     if (!slides.length) return;
 
-    const INTERVAL = 7000;   // ms between auto-advances
+    const INTERVAL = 7500;   // ms between auto-advances
     const TOTAL = slides.length;
     let current = 0;
     let timer = null;
@@ -734,16 +738,45 @@ function init() {
     }, { passive: true });
   }
 
+  const galleryGrid = document.querySelector('.gallery-grid');
+  if (galleryGrid) galleryGrid.style.transition = 'opacity 0.3s ease';
+
   filterBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       filterBtns.forEach(b => { b.classList.remove('active'); b.setAttribute('aria-selected', 'false'); });
       btn.classList.add('active');
       btn.setAttribute('aria-selected', 'true');
       const filter = btn.dataset.filter;
-      galleryItems.forEach(item => {
-        if (filter === 'all' || item.dataset.category === filter) item.classList.remove('hidden');
-        else item.classList.add('hidden');
-      });
+      
+      if (galleryGrid) {
+        galleryGrid.style.opacity = '0';
+        setTimeout(() => {
+          galleryItems.forEach(item => {
+            if (filter === 'all' || item.dataset.category === filter) item.classList.remove('hidden');
+            else item.classList.add('hidden');
+          });
+          galleryGrid.style.opacity = '1';
+        }, 300);
+      } else {
+        galleryItems.forEach(item => {
+          if (filter === 'all' || item.dataset.category === filter) item.classList.remove('hidden');
+          else item.classList.add('hidden');
+        });
+      }
+    });
+  });
+
+  // ─── PREMIUM MAGNETIC HOVER ─────────────────────────────
+  document.querySelectorAll('.hero-btn-primary, .hero-btn-ghost').forEach(btn => {
+    btn.addEventListener('mousemove', (e) => {
+      const rect = btn.getBoundingClientRect();
+      const x = e.clientX - rect.left - rect.width / 2;
+      const y = e.clientY - rect.top - rect.height / 2;
+      btn.style.transform = `translate(${x * 0.15}px, ${y * 0.15}px)`;
+    });
+    
+    btn.addEventListener('mouseleave', () => {
+      btn.style.transform = '';
     });
   });
 }
