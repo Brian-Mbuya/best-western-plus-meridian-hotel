@@ -129,11 +129,9 @@ function init() {
     
     document.querySelectorAll('.hero .fade-up, .hero .fade-in').forEach((el) => {
       const delay = parseFloat(el.dataset.delay || 0);
-      if (el.classList.contains('blur-reveal')) {
-        el.style.animation = `fadeUpBlur 1s cubic-bezier(0.25, 0.46, 0.45, 0.94) ${delay + 0.1}s both`;
-      } else {
-        el.style.animation = `fadeUp 0.9s cubic-bezier(0.25, 0.46, 0.45, 0.94) ${delay + 0.1}s both`;
-      }
+      setTimeout(() => {
+        el.classList.add('visible');
+      }, delay * 1000);
     });
   }
 
