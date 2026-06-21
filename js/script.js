@@ -18,37 +18,38 @@
 // ─── PAGE INTRO (runs immediately — overlay lives in static index.html) ──────
 (function () {
   const intro = document.getElementById('page-intro');
-  if (!intro) return;
-
-  // Skip the animation for users who have already seen it this session.
-  // Remove this block if you always want the animation to play.
-  // if (sessionStorage.getItem('introSeen')) {
-  //   intro.style.display = 'none';
-  //   return;
-  // }
+  let hasSeenIntro = false;
+  try { hasSeenIntro = sessionStorage.getItem('introSeen') === '1'; } catch (_) { }
+  
+  if (!intro || hasSeenIntro) {
+    if (intro) intro.style.display = 'none';
+    window._skipIntroAnimation = true;
+    return;
+  }
 
   // Lock scroll while intro is visible
   document.body.style.overflow = 'hidden';
 
   // Total animation duration: logo 2.2s + curtain delay 1.8s + curtain 0.75s = 2.55s total
-  // We give a tiny extra buffer (200ms) then clean up
   const INTRO_TOTAL_MS = 2600;
 
   // Allow click/tap to skip the intro
   intro.addEventListener('click', dismissIntro);
   intro.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') dismissIntro(); });
 
+  let dismissed = false;
   setTimeout(dismissIntro, INTRO_TOTAL_MS);
 
   function dismissIntro() {
-    // Mark as seen
+    if (dismissed) return;
+    dismissed = true;
     try { sessionStorage.setItem('introSeen', '1'); } catch (_) { }
-    // Unlock scroll
     document.body.style.overflow = '';
-    // Mark done — removes pointer-events so user can interact with the page
     intro.classList.add('done');
-    // After curtains have fully slid away, hide the element entirely
     setTimeout(() => { intro.style.display = 'none'; }, 800);
+    
+    // Dispatch event to trigger the nav and hero entrance
+    document.dispatchEvent(new Event('intro:finished'));
   }
 })();
 
@@ -120,16 +121,30 @@ function init() {
     lineObserver.observe(el);
   });
 
-  // ─── HERO CONTENT ENTRANCE ─────────────────────────────
-  // data-delay attribute drives stagger (in seconds)
-  document.querySelectorAll('.hero .fade-up, .hero .fade-in').forEach((el) => {
-    const delay = parseFloat(el.dataset.delay || 0);
-    if (el.classList.contains('blur-reveal')) {
-      el.style.animation = `fadeUpBlur 1s ease ${delay + 0.1}s both`;
-    } else {
-      el.style.animation = `fadeUp 0.9s ease ${delay + 0.1}s both`;
+  // ─── HERO & NAV ENTRANCE ORCHESTRATION ────────────────
+  function playEntranceSequence() {
+    if (navbar) navbar.classList.add('nav-visible');
+    
+    document.querySelectorAll('.hero .fade-up, .hero .fade-in').forEach((el) => {
+      const delay = parseFloat(el.dataset.delay || 0);
+      if (el.classList.contains('blur-reveal')) {
+        el.style.animation = `fadeUpBlur 1s cubic-bezier(0.25, 0.46, 0.45, 0.94) ${delay + 0.1}s both`;
+      } else {
+        el.style.animation = `fadeUp 0.9s cubic-bezier(0.25, 0.46, 0.45, 0.94) ${delay + 0.1}s both`;
+      }
+    });
+  }
+
+  if (window._skipIntroAnimation) {
+    playEntranceSequence();
+  } else {
+    document.addEventListener('intro:finished', playEntranceSequence);
+    // Fallback if the event fired before sections were ready
+    const intro = document.getElementById('page-intro');
+    if (intro && intro.classList.contains('done')) {
+      playEntranceSequence();
     }
-  });
+  }
 
   // ─── HERO SLIDESHOW ─────────────────────────────────────
   // Pure crossfade — no zoom, no parallax. Just clean hotel photography.
@@ -507,14 +522,15 @@ function init() {
 
   // ─── ACTIVE NAV LINK ───────────────────────────────────
   const sections = ['rooms', 'dining', 'meetings', 'gallery', 'location', 'about-intro', 'contact'];
-  const navLinks = document.querySelectorAll('.nav-link[data-page]');
+  const navLinks = document.querySelectorAll('.nav-link[data-page], .nav-link[data-mobile-page]');
 
   const sectionObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
         const id = entry.target.id;
         navLinks.forEach(link => {
-          link.classList.toggle('active', link.dataset.page === id || (id === 'about-intro' && link.dataset.page === 'about'));
+          const page = link.dataset.page || link.dataset.mobilePage;
+          link.classList.toggle('active', page === id || (id === 'about-intro' && page === 'about'));
         });
       }
     });
