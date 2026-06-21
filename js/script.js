@@ -104,7 +104,9 @@ function init() {
     });
   }, observerOptions);
 
-  document.querySelectorAll('.fade-up, .fade-in').forEach(el => observer.observe(el));
+  document.querySelectorAll('.fade-up, .fade-in').forEach(el => {
+    if (!el.closest('.hero')) observer.observe(el);
+  });
 
   // Gold line animation
   const lineObserver = new IntersectionObserver((entries) => {
