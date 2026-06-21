@@ -129,9 +129,7 @@ function init() {
     
     document.querySelectorAll('.hero .fade-up, .hero .fade-in').forEach((el) => {
       const delay = parseFloat(el.dataset.delay || 0);
-      setTimeout(() => {
-        el.classList.add('visible');
-      }, delay * 1000);
+      el.style.animation = `fadeUp 0.9s cubic-bezier(0.25, 0.46, 0.45, 0.94) ${delay + 0.1}s both`;
     });
   }
 
