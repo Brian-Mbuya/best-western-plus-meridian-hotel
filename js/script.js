@@ -301,7 +301,7 @@ function init() {
     landmarks: [
       { name: 'Kenyatta International Convention Centre', dist: '0.4 km', time: '5 min walk', category: 'Landmark', icon: 'building', desc: 'Nairobi\'s iconic cylindrical tower and convention complex, one of the most recognisable structures in East Africa. A 5-minute walk from the hotel.', maxDist: 5, img: 'gallery/attractions/kenya international convention centre.webp' },
       { name: 'Kenya National Archives', dist: '0.75 km', time: '9 min walk', category: 'Historic Site', icon: 'archive', desc: 'Houses Kenya\'s most significant historical documents and a small museum on the ground floor. A short stroll down Moi Avenue.', maxDist: 10, img: 'gallery/attractions/kenya-national-archives-nairobi-africa-B6693N.jpg'},
-      { name: 'Anniversary Towers', dist: '0.3 km', time: '4 min walk', category: 'Business Hub', icon: 'office', desc: 'Major government and commercial office complex at the very edge of the CBD. Walking distance.', maxDist: 4, img: null },
+      { name: 'Anniversary Towers', dist: '0.3 km', time: '4 min walk', category: 'Business Hub', icon: 'office', desc: 'Major government and commercial office complex at the very edge of the CBD. Walking distance.', maxDist: 4, img: 'gallery/attractions/anniversary towers.webp' },
       { name: 'August 7th Memorial Park', dist: '1.1 km', time: '13 min walk', category: 'Memorial', icon: 'park', desc: 'A peace garden and memorial marking the site of the 1998 US Embassy bombing. A significant site of reflection in the city.', maxDist: 15, img: null },
     ],
     culture: [
