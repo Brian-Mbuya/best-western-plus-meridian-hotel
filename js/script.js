@@ -91,8 +91,13 @@ function init() {
   });
 
   // ─── SCROLL ANIMATION ──────────────────────────────────
+  // Only add invisible states + observer when IntersectionObserver is supported.
+  // This is a progressive enhancement: content is always visible without JS.
   if ('IntersectionObserver' in window) {
-    const observerOptions = { threshold: 0, rootMargin: '0px 0px -10% 0px' };
+    // Signal CSS to apply the initial opacity:0 / translateY states
+    document.documentElement.classList.add('js-animations');
+
+    const observerOptions = { threshold: 0, rootMargin: '0px 0px -5% 0px' };
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
@@ -117,34 +122,29 @@ function init() {
           lineObserver.unobserve(entry.target);
         }
       });
-    }, { threshold: 0, rootMargin: '0px 0px -10% 0px' });
+    }, { threshold: 0, rootMargin: '0px 0px -5% 0px' });
     document.querySelectorAll('.accent-line').forEach(el => {
       el.style.opacity = '0';
       lineObserver.observe(el);
     });
-  } else {
-    // Fallback for older browsers
-    document.querySelectorAll('.fade-up, .fade-in').forEach(el => {
-      el.classList.add('visible');
-      el.style.opacity = '1';
-      el.style.transform = 'none';
-    });
-    document.querySelectorAll('.accent-line').forEach(el => {
-      el.style.opacity = '1';
-    });
   }
+  // If IntersectionObserver is NOT supported: no .js-animations class is added,
+  // so all .fade-up/.fade-in elements remain fully visible (no opacity:0 applied).
 
   // ─── HERO & NAV ENTRANCE ORCHESTRATION ────────────────
   function playEntranceSequence() {
     if (navbar) navbar.classList.add('nav-visible');
-    
-    document.querySelectorAll('.hero .fade-up, .hero .fade-in').forEach((el) => {
-      const delay = parseFloat(el.dataset.delay || 0);
-      el.style.transitionDelay = `${delay + 0.1}s`;
-      setTimeout(() => {
-        el.classList.add('visible');
-      }, 50);
-    });
+
+    // Only animate hero text if animations are enabled (IntersectionObserver present)
+    if (document.documentElement.classList.contains('js-animations')) {
+      document.querySelectorAll('.hero .fade-up, .hero .fade-in').forEach((el) => {
+        const delay = parseFloat(el.dataset.delay || 0);
+        el.style.transitionDelay = `${delay + 0.1}s`;
+        setTimeout(() => {
+          el.classList.add('visible');
+        }, 50);
+      });
+    }
   }
 
   if (window._skipIntroAnimation) {
@@ -157,6 +157,7 @@ function init() {
       playEntranceSequence();
     }
   }
+
 
   // ─── HERO SLIDESHOW ─────────────────────────────────────
   // Pure crossfade — no zoom, no parallax. Just clean hotel photography.
