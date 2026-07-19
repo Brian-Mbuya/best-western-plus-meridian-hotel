@@ -70,20 +70,21 @@
     href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap"
     rel="stylesheet" />
 
-  <link rel="stylesheet" href="css/styles.css?v=3.0" />
+  <link rel="stylesheet" href="css/styles.css?v=3.1" />
 
   <!-- Fail-safe: pure CSS hides the intro after 3.5s even if ALL JavaScript fails -->
   <style>
-    @keyframes introSafetyFadeOut {
-      0%, 80% { opacity: 1; visibility: visible; }
-      100%    { opacity: 0; visibility: hidden; }
+    @keyframes introSafetyHide {
+      0%, 95% { visibility: visible; pointer-events: all; }
+      100%    { visibility: hidden; pointer-events: none; }
     }
     #page-intro {
-      animation: introSafetyFadeOut 3.5s ease forwards !important;
+      animation: introSafetyHide 3.5s linear forwards;
     }
+    /* When JS dismisses, hide immediately with no conflicting animation */
     #page-intro.done {
-      opacity: 0 !important;
       visibility: hidden !important;
+      pointer-events: none !important;
       animation: none !important;
     }
   </style>

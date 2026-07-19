@@ -189,27 +189,38 @@
       inset: 0;
       z-index: 9999;
       display: flex;
-      align-items: center;
-      justify-content: center;
-      background: var(--maroon-dark);
       pointer-events: all;
-      opacity: 1;
-      transition: opacity 0.6s ease 0.2s;
     }
 
     #page-intro.done {
-      opacity: 0;
       pointer-events: none;
     }
 
-    /* Left curtain panel — kept but simplified */
+    /* Curtain panels */
     .intro-curtain-l,
     .intro-curtain-r {
-      display: none;
+      position: absolute;
+      top: 0;
+      width: 50%;
+      height: 100%;
+      background: var(--maroon-dark);
+      will-change: transform;
     }
 
-    /* Centred logo on top of background */
+    .intro-curtain-l {
+      left: 0;
+      animation: curtainLeft 0.75s cubic-bezier(0.76, 0, 0.24, 1) 1.8s forwards;
+    }
+
+    .intro-curtain-r {
+      right: 0;
+      animation: curtainRight 0.75s cubic-bezier(0.76, 0, 0.24, 1) 1.8s forwards;
+    }
+
+    /* Centred logo on top of curtains */
     .intro-logo-wrap {
+      position: absolute;
+      inset: 0;
       display: flex;
       flex-direction: column;
       align-items: center;
