@@ -90,38 +90,48 @@ function init() {
   });
 
   // ─── SCROLL ANIMATION ──────────────────────────────────
-  const observerOptions = { threshold: 0, rootMargin: '0px 0px -10% 0px' };
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        // Slight stagger for sibling elements
-        const delay = entry.target.dataset.delay || 0;
-        setTimeout(() => {
-          entry.target.classList.add('visible');
-        }, delay * 1000);
-        observer.unobserve(entry.target);
-      }
-    });
-  }, observerOptions);
+  if ('IntersectionObserver' in window) {
+    const observerOptions = { threshold: 0, rootMargin: '0px 0px -10% 0px' };
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const delay = entry.target.dataset.delay || 0;
+          setTimeout(() => {
+            entry.target.classList.add('visible');
+          }, delay * 1000);
+          observer.unobserve(entry.target);
+        }
+      });
+    }, observerOptions);
 
-  document.querySelectorAll('.fade-up, .fade-in').forEach(el => {
-    if (!el.closest('.hero')) observer.observe(el);
-  });
-
-  // Gold line animation
-  const lineObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.style.animation = 'slideRight 0.6s ease forwards';
-        entry.target.style.opacity = '1';
-        lineObserver.unobserve(entry.target);
-      }
+    document.querySelectorAll('.fade-up, .fade-in').forEach(el => {
+      if (!el.closest('.hero')) observer.observe(el);
     });
-  }, { threshold: 0, rootMargin: '0px 0px -10% 0px' });
-  document.querySelectorAll('.accent-line').forEach(el => {
-    el.style.opacity = '0';
-    lineObserver.observe(el);
-  });
+
+    const lineObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.style.animation = 'slideRight 0.6s ease forwards';
+          entry.target.style.opacity = '1';
+          lineObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0, rootMargin: '0px 0px -10% 0px' });
+    document.querySelectorAll('.accent-line').forEach(el => {
+      el.style.opacity = '0';
+      lineObserver.observe(el);
+    });
+  } else {
+    // Fallback for older browsers
+    document.querySelectorAll('.fade-up, .fade-in').forEach(el => {
+      el.classList.add('visible');
+      el.style.opacity = '1';
+      el.style.transform = 'none';
+    });
+    document.querySelectorAll('.accent-line').forEach(el => {
+      el.style.opacity = '1';
+    });
+  }
 
   // ─── HERO & NAV ENTRANCE ORCHESTRATION ────────────────
   function playEntranceSequence() {
@@ -129,7 +139,10 @@ function init() {
     
     document.querySelectorAll('.hero .fade-up, .hero .fade-in').forEach((el) => {
       const delay = parseFloat(el.dataset.delay || 0);
-      el.style.animation = `fadeUp 0.9s cubic-bezier(0.25, 0.46, 0.45, 0.94) ${delay + 0.1}s both`;
+      el.style.transitionDelay = `${delay + 0.1}s`;
+      setTimeout(() => {
+        el.classList.add('visible');
+      }, 50);
     });
   }
 
