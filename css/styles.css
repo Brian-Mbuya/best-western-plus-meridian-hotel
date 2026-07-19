@@ -189,54 +189,33 @@
       inset: 0;
       z-index: 9999;
       display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--maroon-dark);
       pointer-events: all;
+      opacity: 1;
+      transition: opacity 0.6s ease 0.2s;
     }
 
     #page-intro.done {
+      opacity: 0;
       pointer-events: none;
     }
 
-    /* Left curtain panel */
+    /* Left curtain panel — kept but simplified */
     .intro-curtain-l,
     .intro-curtain-r {
-      position: absolute;
-      top: 0;
-      width: 50%;
-      height: 100%;
-      background: var(--maroon-dark);
-      will-change: transform;
+      display: none;
     }
 
-    .intro-curtain-l {
-      left: 0;
-      /* start visible, slide out left at 1.8s, duration 0.7s */
-      transition: transform 0.75s cubic-bezier(0.76, 0, 0.24, 1) 1.8s;
-    }
-    
-    #page-intro.done .intro-curtain-l { transform: translateX(-100%); }
-
-    .intro-curtain-r {
-      right: 0;
-      transition: transform 0.75s cubic-bezier(0.76, 0, 0.24, 1) 1.8s;
-    }
-    
-    #page-intro.done .intro-curtain-r { transform: translateX(100%); }
-
-    /* Centred logo on top of curtains */
+    /* Centred logo on top of background */
     .intro-logo-wrap {
-      position: absolute;
-      inset: 0;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       gap: 16px;
       z-index: 1;
-      opacity: 0;
-      transition: opacity 0.5s ease;
-    }
-    
-    #page-intro:not(.done) .intro-logo-wrap {
       animation: introLogoReveal 2.2s ease forwards;
     }
 

@@ -46,7 +46,8 @@
     try { sessionStorage.setItem('introSeen', '1'); } catch (_) { }
     document.body.style.overflow = '';
     intro.classList.add('done');
-    setTimeout(() => { intro.style.display = 'none'; }, 800);
+    // Hide after the 0.6s fade + 0.2s delay = 0.8s total; use 900ms to be safe
+    setTimeout(() => { intro.style.display = 'none'; }, 900);
     
     // Dispatch event to trigger the nav and hero entrance
     document.dispatchEvent(new Event('intro:finished'));
