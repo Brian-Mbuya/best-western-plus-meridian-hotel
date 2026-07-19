@@ -1,0 +1,374 @@
+<style>
+  .ta-hero-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: repeat(5, 200px);
+    gap: 10px;
+    margin-top: 32px;
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: pointer;
+  }
+  @media(min-width: 768px) {
+    .ta-hero-grid {
+      grid-template-columns: 2fr 1fr;
+      grid-template-rows: repeat(2, 300px);
+    }
+  }
+  .ta-hero-item {
+    position: relative;
+    overflow: hidden;
+  }
+  .ta-hero-item.main-item {
+    grid-row: auto;
+  }
+  @media(min-width: 768px) {
+    .ta-hero-item.main-item {
+      grid-row: span 2;
+    }
+  }
+  .ta-hero-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+  }
+  .ta-hero-item:hover img {
+    transform: scale(1.05);
+  }
+  .ta-gallery-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: white;
+    z-index: 99999;
+    flex-direction: column;
+  }
+  .ta-gallery-modal.open {
+    display: flex;
+  }
+  .ta-modal-header {
+    padding: 20px 32px;
+    border-bottom: 1px solid var(--bone);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: white;
+  }
+  .ta-modal-body {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+  .ta-sidebar {
+    width: 250px;
+    background: #f7f7f7;
+    padding: 24px;
+    overflow-y: auto;
+    border-right: 1px solid var(--bone);
+  }
+  .ta-main-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 32px;
+    background: white;
+  }
+  @media(max-width: 767px) {
+    .ta-modal-body {
+      flex-direction: column;
+    }
+    .ta-sidebar {
+      width: 100%;
+      height: auto;
+      border-right: none;
+      border-bottom: 1px solid var(--bone);
+      padding: 16px;
+      display: flex;
+      overflow-x: auto;
+    }
+    .ta-sidebar .gallery-filters {
+      flex-direction: row !important;
+      width: max-content;
+    }
+  }
+  .ta-sidebar .gallery-filters {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 0;
+  }
+  .ta-sidebar .gallery-filter-btn {
+    text-align: left;
+    padding: 12px 16px;
+    border-radius: 8px;
+    background: transparent;
+    border: 1px solid transparent;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .ta-sidebar .gallery-filter-btn:hover {
+    background: #ebebeb;
+  }
+  .ta-sidebar .gallery-filter-btn.active {
+    background: white;
+    border: 1px solid var(--maroon);
+    color: var(--maroon);
+    font-weight: 600;
+  }
+</style>
+
+<section class="section" id="gallery" style="background:var(--ivory);" aria-labelledby="gallery-heading">
+  <div class="container">
+    <!-- Trust Signals Bar -->
+    <div style="display:flex;flex-wrap:wrap;gap:0;border:1px solid var(--bone);border-radius:12px;overflow:hidden;margin-bottom:56px;">
+      <div style="flex:1;min-width:180px;padding:24px 28px;border-right:1px solid var(--bone);display:flex;align-items:center;gap:14px;">
+        <div style="flex-shrink:0;">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--maroon)" stroke-width="1.5" aria-hidden="true">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+          </svg>
+        </div>
+        <div>
+          <div style="font-size:1.3rem;font-weight:800;color:var(--ink);">Best Western Plus</div>
+          <div style="font-size:0.75rem;color:var(--muted);margin-top:2px;">4-Star certified brand standard</div>
+        </div>
+      </div>
+      <div style="flex:1;min-width:180px;padding:24px 28px;border-right:1px solid var(--bone);display:flex;align-items:center;gap:14px;">
+        <div style="flex-shrink:0;">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--maroon)" stroke-width="1.5" aria-hidden="true">
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+        </div>
+        <div>
+          <div style="font-size:1.3rem;font-weight:800;color:var(--ink);">Best Rate</div>
+          <div style="font-size:0.75rem;color:var(--muted);margin-top:2px;">Guaranteed when you book direct</div>
+        </div>
+      </div>
+      <div style="flex:1;min-width:180px;padding:24px 28px;display:flex;align-items:center;gap:14px;">
+        <div style="flex-shrink:0;">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--maroon)" stroke-width="1.5" aria-hidden="true">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+          </svg>
+        </div>
+        <div>
+          <div style="font-size:1.3rem;font-weight:800;color:var(--ink);">4,500+</div>
+          <div style="font-size:0.75rem;color:var(--muted);margin-top:2px;">BWR hotels worldwide to redeem points</div>
+        </div>
+      </div>
+    </div>
+
+    <p class="eyebrow">Gallery</p>
+    <div class="accent-line"></div>
+    <h2 class="display-lg fade-up" id="gallery-heading">See the hotel</h2>
+
+    <!-- TripAdvisor Style Hero Grid -->
+    <div class="ta-hero-grid fade-up" id="ta-hero-grid">
+      <!-- Main big image -->
+      <div class="ta-hero-item main-item" onclick="document.getElementById('ta-gallery-modal').classList.add('open'); document.body.style.overflow='hidden'; document.querySelector('.ta-sidebar .gallery-filter-btn[data-filter=\'all\']')?.click();">
+        <img src="gallery/hotel/hotel-lobby.jpg" alt="Hotel Lobby">
+      </div>
+      <!-- Smaller images -->
+      <div class="ta-hero-item" onclick="document.getElementById('ta-gallery-modal').classList.add('open'); document.body.style.overflow='hidden'; document.querySelector('.ta-sidebar .gallery-filter-btn[data-filter=\'rooms\']')?.click();">
+        <img src="gallery/coworker/executive-room.jpg" alt="Executive Room">
+      </div>
+      <div class="ta-hero-item" onclick="document.getElementById('ta-gallery-modal').classList.add('open'); document.body.style.overflow='hidden'; document.querySelector('.ta-sidebar .gallery-filter-btn[data-filter=\'facilities\']')?.click();">
+        <img src="gallery/coworker/pool.webp" alt="Rooftop Pool">
+      </div>
+    </div>
+
+    <div style="margin-top: 40px; text-align: center;" class="fade-up">
+      <button class="btn-primary" onclick="document.getElementById('ta-gallery-modal').classList.add('open'); document.body.style.overflow='hidden'; document.querySelector('.ta-sidebar .gallery-filter-btn[data-filter=\'all\']')?.click();">
+        View all photos
+      </button>
+    </div>
+  </div>
+
+  <!-- TA FULL GALLERY MODAL -->
+  <div class="ta-gallery-modal" id="ta-gallery-modal" role="dialog" aria-modal="true" aria-label="Full Gallery">
+    <div class="ta-modal-header">
+      <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--ink); margin: 0;">Best Western Plus Meridian Hotel</h2>
+      <button id="ta-gallery-close" style="background: none; border: none; cursor: pointer; padding: 8px; color: var(--ink);">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="ta-modal-body">
+      <!-- Sidebar Filters -->
+      <div class="ta-sidebar">
+        <div class="gallery-filters" role="tablist" aria-label="Gallery filters">
+          <button class="gallery-filter-btn active" data-filter="all" role="tab" aria-selected="true">All Photos</button>
+          <button class="gallery-filter-btn" data-filter="rooms" role="tab" aria-selected="false">Rooms</button>
+          <button class="gallery-filter-btn" data-filter="dining" role="tab" aria-selected="false">Dining</button>
+          <button class="gallery-filter-btn" data-filter="events" role="tab" aria-selected="false">Events</button>
+          <button class="gallery-filter-btn" data-filter="facilities" role="tab" aria-selected="false">Facilities</button>
+        </div>
+      </div>
+      
+      <!-- Masonry Grid -->
+      <div class="ta-main-content">
+        <div class="gallery-grid" id="gallery-grid">
+          <!-- Row 1: tall exterior + 3 landscape tiles -->
+          <div class="gallery-item" data-category="facilities" style="grid-row:span 2;" data-label="Hotel Exterior" data-src="gallery/hero/exterior.jpg">
+            <img src="gallery/hero/exterior.jpg" alt="Hotel exterior" loading="lazy" width="600" height="800" />
+            <div class="gallery-overlay"><div class="gallery-label">Hotel Exterior</div><div class="gallery-zoom-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg></div></div>
+          </div>
+
+          <div class="gallery-item" data-category="rooms" data-label="Standard Room" data-src="gallery/rooms/standard-room.jpg">
+            <img src="gallery/rooms/standard-room.jpg" alt="Standard room" loading="lazy" width="600" height="400" />
+            <div class="gallery-overlay"><div class="gallery-label">Guest Room</div><div class="gallery-zoom-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg></div></div>
+          </div>
+
+          <div class="gallery-item" data-category="facilities" data-label="Rooftop Terrace" data-src="gallery/rooftop/roof-top-day.jpg">
+            <img src="gallery/rooftop/roof-top-day.jpg" alt="Rooftop terrace and pool in daylight" loading="lazy" width="600" height="400" />
+            <div class="gallery-overlay"><div class="gallery-label">Rooftop Terrace</div><div class="gallery-zoom-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg></div></div>
+          </div>
+
+          <div class="gallery-item" data-category="dining" data-label="Rendezvous Dining" data-src="gallery/dining/rendezvous-restaurant.jpg">
+            <img src="gallery/dining/rendezvous-restaurant.jpg" alt="Rendezvous restaurant buffet area" loading="lazy" width="600" height="400" />
+            <div class="gallery-overlay"><div class="gallery-label">Rendezvous Dining</div><div class="gallery-zoom-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg></div></div>
+          </div>
+
+          <!-- Row 2: Coworker images -->
+          <div class="gallery-item" data-category="rooms" data-label="Superior Room" data-src="gallery/coworker/superior-room.jpg">
+            <img src="gallery/coworker/superior-room.jpg" alt="Superior guest room" loading="lazy" width="600" height="400" />
+            <div class="gallery-overlay"><div class="gallery-label">Superior Room</div><div class="gallery-zoom-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg></div></div>
+          </div>
+
+          <div class="gallery-item" data-category="rooms" data-label="Executive Room" data-src="gallery/coworker/executive-room.jpg">
+            <img src="gallery/coworker/executive-room.jpg" alt="Executive guest room" loading="lazy" width="600" height="400" />
+            <div class="gallery-overlay"><div class="gallery-label">Executive Room</div><div class="gallery-zoom-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg></div></div>
+          </div>
+
+          <div class="gallery-item" data-category="dining" data-label="Breakfast Buffet" data-src="gallery/coworker/breakfast.jpg">
+            <img src="gallery/coworker/breakfast.jpg" alt="Breakfast buffet presentation" loading="lazy" width="600" height="400" />
+            <div class="gallery-overlay"><div class="gallery-label">Breakfast Buffet</div><div class="gallery-zoom-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg></div></div>
+          </div>
+
+          <div class="gallery-item" data-category="dining" data-label="Restaurant Setting" data-src="gallery/coworker/resto.jpg">
+            <img src="gallery/coworker/resto.jpg" alt="Restaurant table setting" loading="lazy" width="600" height="400" />
+            <div class="gallery-overlay"><div class="gallery-label">Restaurant</div><div class="gallery-zoom-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg></div></div>
+          </div>
+
+          <!-- Row 3 -->
+          <div class="gallery-item" data-category="facilities" data-label="Rooftop Pool" data-src="gallery/coworker/pool.webp">
+            <img src="gallery/coworker/pool.webp" alt="Rooftop pool" loading="lazy" width="600" height="400" />
+            <div class="gallery-overlay"><div class="gallery-label">Rooftop Pool</div><div class="gallery-zoom-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg></div></div>
+          </div>
+
+          <div class="gallery-item" data-category="events" data-label="Boardroom" data-src="gallery/coworker/boardroom.jpg">
+            <img src="gallery/coworker/boardroom.jpg" alt="Executive boardroom" loading="lazy" width="600" height="400" />
+            <div class="gallery-overlay"><div class="gallery-label">Boardroom</div><div class="gallery-zoom-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg></div></div>
+          </div>
+
+          <div class="gallery-item" data-category="facilities" data-label="Fitness Center" data-src="gallery/coworker/gym.jpg">
+            <img src="gallery/coworker/gym.jpg" alt="Hotel fitness center" loading="lazy" width="600" height="400" />
+            <div class="gallery-overlay"><div class="gallery-label">Fitness Center</div><div class="gallery-zoom-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg></div></div>
+          </div>
+
+          <div class="gallery-item" data-category="facilities" data-label="Atrium View" data-src="gallery/coworker/looking-down.jpg">
+            <img src="gallery/coworker/looking-down.jpg" alt="Looking down at the hotel atrium" loading="lazy" width="600" height="400" />
+            <div class="gallery-overlay"><div class="gallery-label">Atrium View</div><div class="gallery-zoom-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg></div></div>
+          </div>
+
+          <div class="gallery-item" data-category="rooms" data-label="Suite" data-src="gallery/rooms/suite.webp">
+            <img src="gallery/rooms/suite.webp" alt="Premium king suite" loading="lazy" width="600" height="400" />
+            <div class="gallery-overlay"><div class="gallery-label">Premium Suite</div><div class="gallery-zoom-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg></div></div>
+          </div>
+
+          <div class="gallery-item" data-category="dining" data-label="Dining Interior" data-src="gallery/dining/interior.jpg">
+            <img src="gallery/dining/interior.jpg" alt="Restaurant interior" loading="lazy" width="600" height="400" />
+            <div class="gallery-overlay"><div class="gallery-label">Dining Interior</div><div class="gallery-zoom-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg></div></div>
+          </div>
+
+          <div class="gallery-item" data-category="rooms" data-label="Family Room" data-src="gallery/coworker/family-room.jpg">
+            <img src="gallery/coworker/family-room.jpg" alt="Family room" loading="lazy" width="600" height="400" />
+            <div class="gallery-overlay"><div class="gallery-label">Family Room</div><div class="gallery-zoom-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg></div></div>
+          </div>
+
+          <div class="gallery-item" data-category="rooms" data-label="King Room" data-src="gallery/coworker/king.jpg">
+            <img src="gallery/coworker/king.jpg" alt="King room" loading="lazy" width="600" height="400" />
+            <div class="gallery-overlay"><div class="gallery-label">King Room</div><div class="gallery-zoom-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg></div></div>
+          </div>
+
+          <div class="gallery-item" data-category="rooms" data-label="Bathroom" data-src="gallery/coworker/bathroom.jpg">
+            <img src="gallery/coworker/bathroom.jpg" alt="Bathroom" loading="lazy" width="600" height="400" />
+            <div class="gallery-overlay"><div class="gallery-label">Bathroom</div><div class="gallery-zoom-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg></div></div>
+          </div>
+
+          <div class="gallery-item" data-category="dining" data-label="Culinary Excellence" data-src="gallery/coworker/dish.jpg">
+            <img src="gallery/coworker/dish.jpg" alt="Dining dish" loading="lazy" width="600" height="400" />
+            <div class="gallery-overlay"><div class="gallery-label">Culinary Excellence</div><div class="gallery-zoom-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg></div></div>
+          </div>
+
+          <div class="gallery-item" data-category="dining" data-label="Chef's Special" data-src="gallery/coworker/dish2.jpg">
+            <img src="gallery/coworker/dish2.jpg" alt="Dining dish" loading="lazy" width="600" height="400" />
+            <div class="gallery-overlay"><div class="gallery-label">Chef's Special</div><div class="gallery-zoom-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg></div></div>
+          </div>
+
+          <div class="gallery-item" data-category="facilities" data-label="Spa Treatment" data-src="gallery/coworker/spa.jpg">
+            <img src="gallery/coworker/spa.jpg" alt="Spa treatment room" loading="lazy" width="600" height="400" />
+            <div class="gallery-overlay"><div class="gallery-label">Spa Treatment</div><div class="gallery-zoom-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg></div></div>
+          </div>
+
+          <!-- Row 4: additional images -->
+          <div class="gallery-item" data-category="rooms" data-label="Executive Room" data-src="gallery/rooms/executive-room.jpg">
+            <img src="gallery/rooms/executive-room.jpg" alt="Executive room" loading="lazy" width="600" height="400" />
+            <div class="gallery-overlay"><div class="gallery-label">Executive Room</div><div class="gallery-zoom-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg></div></div>
+          </div>
+
+          <div class="gallery-item" data-category="events" data-label="Khyber Hall" data-src="gallery/meetings/khyber.jpg">
+            <img src="gallery/meetings/khyber.jpg" alt="Khyber Hall event space" loading="lazy" width="600" height="400" />
+            <div class="gallery-overlay"><div class="gallery-label">Khyber Hall</div><div class="gallery-zoom-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg></div></div>
+          </div>
+
+          <div class="gallery-item" data-category="dining" data-label="Chef Specials" data-src="gallery/dining/chef-speials.jpg">
+            <img src="gallery/dining/chef-speials.jpg" alt="Chef specials and cuisine" loading="lazy" width="600" height="400" />
+            <div class="gallery-overlay"><div class="gallery-label">Chef Specials</div><div class="gallery-zoom-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg></div></div>
+          </div>
+
+          <div class="gallery-item" data-category="facilities" data-label="Hotel Lobby" data-src="gallery/hotel/hotel-lobby.jpg">
+            <img src="gallery/hotel/hotel-lobby.jpg" alt="Hotel main lobby" loading="lazy" width="600" height="400" />
+            <div class="gallery-overlay"><div class="gallery-label">Hotel Lobby</div><div class="gallery-zoom-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg></div></div>
+          </div>
+
+          <div class="gallery-item" data-category="rooms" data-label="Superior Room" data-src="gallery/rooms/superior-room.webp">
+            <img src="gallery/rooms/superior-room.webp" alt="Superior room" loading="lazy" width="600" height="400" />
+            <div class="gallery-overlay"><div class="gallery-label">Superior Room</div><div class="gallery-zoom-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg></div></div>
+          </div>
+
+          <div class="gallery-item" data-category="events" data-label="Event Setup" data-src="gallery/meetings/best-western-plus-meridian-1.jpg">
+            <img src="gallery/meetings/best-western-plus-meridian-1.jpg" alt="Event setup in conference room" loading="lazy" width="600" height="400" />
+            <div class="gallery-overlay"><div class="gallery-label">Event Setup</div><div class="gallery-zoom-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg></div></div>
+          </div>
+
+          <div class="gallery-item" data-category="dining" data-label="Dining Guests" data-src="gallery/dining/dining-guests.jpg">
+            <img src="gallery/dining/dining-guests.jpg" alt="Guests enjoying dining" loading="lazy" width="600" height="400" />
+            <div class="gallery-overlay"><div class="gallery-label">Dining Experience</div><div class="gallery-zoom-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg></div></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LIGHTBOX OVERLAY -->
+  <div class="lightbox-overlay" id="lightbox" role="dialog" aria-modal="true" aria-label="Image viewer" style="display:none; z-index:999999;">
+    <button class="lightbox-close" id="lightbox-close" aria-label="Close image viewer">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <button class="lightbox-arrow lightbox-prev" id="lightbox-prev" aria-label="Previous image">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div class="lightbox-image-wrap">
+      <img id="lightbox-img" src="" alt="" />
+      <p class="lightbox-caption" id="lightbox-caption"></p>
+    </div>
+    <button class="lightbox-arrow lightbox-next" id="lightbox-next" aria-label="Next image">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+  </div>
+
+</section>
