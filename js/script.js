@@ -90,7 +90,7 @@ function init() {
   });
 
   // ─── SCROLL ANIMATION ──────────────────────────────────
-  const observerOptions = { threshold: 0.12, rootMargin: '0px 0px -40px 0px' };
+  const observerOptions = { threshold: 0, rootMargin: '0px 0px -10% 0px' };
   const observer = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
       if (entry.isIntersecting) {
@@ -117,7 +117,7 @@ function init() {
         lineObserver.unobserve(entry.target);
       }
     });
-  }, { threshold: 0.5 });
+  }, { threshold: 0, rootMargin: '0px 0px -10% 0px' });
   document.querySelectorAll('.accent-line').forEach(el => {
     el.style.opacity = '0';
     lineObserver.observe(el);
