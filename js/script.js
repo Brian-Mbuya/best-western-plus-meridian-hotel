@@ -5,56 +5,13 @@
  * runs after include-sections.js has finished injecting every HTML
  * fragment and fired the "sections:ready" event on `document`.
  *
- * This wrapping is required by the split-file architecture: every
- * document.getElementById(...) call here targets an element that
- * lives inside one of the /sections fragments, not in the static
- * shell of index.html. If this code ran at the normal top level
- * (the way it did in the original single-file version), it would
- * execute before those fragments exist and throw immediately on
- * the very first DOM lookup, silently breaking every feature below.
+ * The PAGE INTRO dismissal is handled by an inline <script> in
+ * index.html so it cannot be blocked by caching or defer timing.
  * ---------------------------------------------------------------
  */
 
-// ─── PAGE INTRO (runs immediately — overlay lives in static index.html) ──────
-(function () {
-  const intro = document.getElementById('page-intro');
-  let hasSeenIntro = false;
-  try { hasSeenIntro = sessionStorage.getItem('introSeen') === '1'; } catch (_) { }
-  
-  if (!intro || hasSeenIntro) {
-    if (intro) intro.style.display = 'none';
-    window._skipIntroAnimation = true;
-    return;
-  }
-
-  // Lock scroll while intro is visible
-  document.body.style.overflow = 'hidden';
-
-  // Total animation duration: logo 2.2s + curtain delay 1.8s + curtain 0.75s = 2.55s total
-  const INTRO_TOTAL_MS = 2600;
-
-  // Allow click/tap to skip the intro
-  intro.addEventListener('click', dismissIntro);
-  intro.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') dismissIntro(); });
-
-  let dismissed = false;
-  setTimeout(dismissIntro, INTRO_TOTAL_MS);
-
-  function dismissIntro() {
-    if (dismissed) return;
-    dismissed = true;
-    try { sessionStorage.setItem('introSeen', '1'); } catch (_) { }
-    document.body.style.overflow = '';
-    intro.classList.add('done');
-    // Hide after the 0.6s fade + 0.2s delay = 0.8s total; use 900ms to be safe
-    setTimeout(() => { intro.style.display = 'none'; }, 900);
-    
-    // Dispatch event to trigger the nav and hero entrance
-    document.dispatchEvent(new Event('intro:finished'));
-  }
-})();
-
 document.addEventListener('sections:ready', init);
+
 
 function init() {
   // ─── NAVBAR ───────────────────────────────────────────

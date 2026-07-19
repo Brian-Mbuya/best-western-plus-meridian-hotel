@@ -6,6 +6,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Best Western Plus Meridian Hotel | Nairobi CBD</title>
 
+  <!-- Prevent aggressive caching of assets -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+
   <!-- Primary SEO -->
   <meta name="description"
     content="Best Western Plus Meridian Hotel — 4-star hotel in the heart of Nairobi CBD. 128 rooms, rooftop pool, Rendezvous Restaurant, Kyber Hall for up to 350 guests. Book direct for best rates." />
@@ -65,13 +70,23 @@
     href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap"
     rel="stylesheet" />
 
-  <!--
-    NOTE: react / react-dom / babel <script> tags from the previous build were removed here.
-    Nothing in script.js calls React — they were three unused blocking network requests
-    on every page load. If a future rebuild actually needs React, re-add them then.
-  -->
+  <link rel="stylesheet" href="css/styles.css?v=3.0" />
 
-  <link rel="stylesheet" href="css/styles.css?v=2.3" />
+  <!-- Fail-safe: pure CSS hides the intro after 3.5s even if ALL JavaScript fails -->
+  <style>
+    @keyframes introSafetyFadeOut {
+      0%, 80% { opacity: 1; visibility: visible; }
+      100%    { opacity: 0; visibility: hidden; }
+    }
+    #page-intro {
+      animation: introSafetyFadeOut 3.5s ease forwards !important;
+    }
+    #page-intro.done {
+      opacity: 0 !important;
+      visibility: hidden !important;
+      animation: none !important;
+    }
+  </style>
 </head>
 
 <body>
@@ -87,22 +102,46 @@
   </button>
 
   <!-- ============================================================
-       PAGE INTRO — luxury curtain reveal
-       Runs once per session (sessionStorage flag prevents replay).
-       aria-hidden so screen-readers skip the decorative animation.
+       PAGE INTRO — luxury brand reveal
+       Pure CSS animation handles the fade-out. JS can dismiss early.
   ============================================================ -->
   <div id="page-intro" aria-hidden="true" role="presentation">
-    <!-- Two curtain halves -->
     <div class="intro-curtain-l"></div>
     <div class="intro-curtain-r"></div>
-    <!-- Logo + tagline centred over curtains -->
     <div class="intro-logo-wrap">
       <img src="gallery/logo1.jpg" alt="" />
       <div class="intro-tagline">Nairobi · Est. 1994</div>
     </div>
-    <!-- Decorative horizontal rule below logo -->
     <div class="intro-border"></div>
   </div>
+
+  <!-- INLINE intro dismissal — no external file dependency, cannot be cached stale -->
+  <script>
+  (function() {
+    var intro = document.getElementById('page-intro');
+    if (!intro) return;
+    var seen = false;
+    try { seen = sessionStorage.getItem('introSeen') === '1'; } catch(e) {}
+    if (seen) {
+      intro.style.display = 'none';
+      window._skipIntroAnimation = true;
+      return;
+    }
+    document.body.style.overflow = 'hidden';
+    var done = false;
+    function dismiss() {
+      if (done) return;
+      done = true;
+      try { sessionStorage.setItem('introSeen', '1'); } catch(e) {}
+      document.body.style.overflow = '';
+      intro.classList.add('done');
+      setTimeout(function() { intro.style.display = 'none'; }, 900);
+      document.dispatchEvent(new Event('intro:finished'));
+    }
+    intro.addEventListener('click', dismiss);
+    setTimeout(dismiss, 2600);
+  })();
+  </script>
 
   <div id="navbar-mount"></div>
   <div id="mobilemenu-mount"></div>
@@ -126,7 +165,7 @@
 
   <!-- Section loader runs first and renders each include before page-behavior script runs -->
   <script src="js/include-sections.js"></script>
-  <script src="js/script.js?v=2.3" defer></script>
+  <script src="js/script.js?v=3.0"></script>
 </body>
 
 </html>
