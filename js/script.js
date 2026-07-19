@@ -808,6 +808,35 @@ function init() {
   // Apply on initial load
   updateGalleryVisibility('all');
 
+  // ─── BOOKING ENGINE REDIRECT ────────────────────────────
+  const checkAvailBtn = document.getElementById('check-avail-btn');
+  const checkinInput = document.getElementById('checkin');
+  const checkoutInput = document.getElementById('checkout');
+  
+  if (checkAvailBtn && checkinInput && checkoutInput) {
+    checkAvailBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const ci = checkinInput.value;
+      const co = checkoutInput.value;
+      let baseUrl = 'https://www.bestwestern.com/en_US/book/hotel-rooms.75152.html';
+      if (ci && co) {
+        baseUrl += `?checkIn=${ci}&checkOut=${co}`;
+      }
+      window.open(baseUrl, '_blank');
+    });
+  }
+
+  // ─── CONTACT FORM LOGIC ─────────────────────────────────
+  const contactForm = document.getElementById('contact-form');
+  if (contactForm) {
+    contactForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      // Show success toast
+      showToast('Thank you! The Meridian concierge team will contact you shortly.', 4000);
+      contactForm.reset();
+    });
+  }
+
   // ─── PREMIUM MAGNETIC HOVER ─────────────────────────────
   document.querySelectorAll('.hero-btn-primary, .hero-btn-ghost').forEach(btn => {
     btn.addEventListener('mousemove', (e) => {
