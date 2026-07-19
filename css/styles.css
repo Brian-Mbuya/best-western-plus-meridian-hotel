@@ -35,13 +35,13 @@
 
     html {
       scroll-behavior: smooth;
+      overflow-x: hidden;
     }
 
     body {
       font-family: var(--font-body);
       color: var(--text);
       background: var(--white);
-      overflow-x: hidden;
     }
 
     img {
