@@ -36,6 +36,12 @@
     html {
       scroll-behavior: smooth;
       overflow-x: hidden;
+      /* #navbar is position:fixed and 84px tall. Without this, every in-page
+         anchor parked the target's first line underneath the bar, so section
+         headings were swallowed on every nav click. scroll-padding-top fixes
+         native anchors, scrollIntoView() and keyboard focus jumps at once —
+         no per-click JS arithmetic. */
+      scroll-padding-top: 96px;
     }
 
     body {
@@ -109,16 +115,11 @@
       }
     }
 
-    @keyframes slideRight {
-      from {
-        transform: scaleX(0);
-      }
-
-      to {
-        transform: scaleX(1);
-      }
-    }
-
+    /* NOTE: @keyframes slideRight was removed — the gold accent rules are now
+       drawn by the shared reveal system (.accent-line + .visible) instead of
+       JS assigning an inline animation, so nothing referenced it any more.
+       (countUp / fadeUpBlur / heroKen / shimmer are also currently unused, but
+       they predate this change and are left alone.) */
     @keyframes countUp {
       from {
         opacity: 0;
@@ -152,130 +153,248 @@
     }
 
     /* =============================================
-       PAGE INTRO / CURTAIN REVEAL ANIMATION
-       A luxury "curtain" splits vertically, logo
-       fades in from the centre, then slides away.
+       PAGE INTRO — GOLD-RULE LOGO REVEAL
+       ---------------------------------------------
+       Sequence (~2.55s total, skippable by click/key):
+         0.00s  maroon field already painted
+         0.15s  gold hairline draws out from centre
+         0.45s  logo mark rises through the rule
+         0.75s  wordmark letter-spacing settles
+         1.00s  tagline fades up
+         1.95s  content lifts away
+         2.10s  field rises like a curtain, hero beneath
+
+       Inert until JS adds .is-playing, and the element carries [hidden]
+       until the controller un-hides it — so a JS failure means "no intro",
+       never "a full-screen panel stuck over the site".
     ============================================= */
-    @keyframes curtainLeft {
-      0%   { transform: translateX(0); }
-      100% { transform: translateX(-100%); }
+    @keyframes introRuleDraw {
+      0%   { transform: scaleX(0); opacity: 0; }
+      100% { transform: scaleX(1); opacity: 1; }
     }
-    @keyframes curtainRight {
-      0%   { transform: translateX(0); }
-      100% { transform: translateX(100%); }
+    @keyframes introMarkRise {
+      0%   { opacity: 0; transform: translateY(18px) scale(0.94); }
+      100% { opacity: 1; transform: translateY(0)    scale(1); }
     }
-    @keyframes introLogoReveal {
-      0%   { opacity: 0; transform: translateY(16px) scale(0.96); }
-      40%  { opacity: 1; transform: translateY(0)   scale(1); }
-      75%  { opacity: 1; transform: translateY(0)   scale(1); }
-      100% { opacity: 0; transform: translateY(-10px) scale(0.98); }
+    @keyframes introNameSettle {
+      0%   { opacity: 0; letter-spacing: 0.62em; }
+      100% { opacity: 1; letter-spacing: 0.28em; }
     }
-    @keyframes introTaglineReveal {
-      0%   { opacity: 0; letter-spacing: 0.35em; }
-      40%  { opacity: 1; letter-spacing: 0.2em; }
-      75%  { opacity: 1; }
-      100% { opacity: 0; }
+    @keyframes introTaglineRise {
+      0%   { opacity: 0; transform: translateY(8px); }
+      100% { opacity: 1; transform: translateY(0); }
     }
-    @keyframes introBorderPulse {
-      0%   { opacity: 0; width: 0; }
-      30%  { opacity: 1; width: 80px; }
-      70%  { opacity: 1; width: 80px; }
-      100% { opacity: 0; width: 80px; }
+    /* Content leaves just before the field, so the mark reads as lifted away
+       rather than clipped by the rising panel. */
+    @keyframes introStageExit {
+      0%   { opacity: 1; transform: translateY(0); }
+      100% { opacity: 0; transform: translateY(-26px); }
+    }
+    @keyframes introFieldExit {
+      0%   { transform: translateY(0); }
+      100% { transform: translateY(-100%); }
     }
 
-    /* Overlay wrapper */
     #page-intro {
       position: fixed;
       inset: 0;
       z-index: 9999;
-      display: flex;
-      pointer-events: all;
-    }
-
-    #page-intro.done {
+      overflow: hidden;
       pointer-events: none;
     }
 
-    /* Curtain panels */
-    .intro-curtain-l,
-    .intro-curtain-r {
+    #page-intro[hidden] { display: none; }
+
+    /* Only while playing does it capture clicks (so users can tap to skip). */
+    #page-intro.is-playing { pointer-events: auto; }
+
+    /* Base colour must stay exactly var(--maroon) — gallery/logo1.jpg is
+       artwork on a #8C1938 square, so matching it hides the JPG's edges.
+       The radial only lifts the centre and deepens the far corners. */
+    .intro-field {
       position: absolute;
-      top: 0;
-      width: 50%;
-      height: 100%;
-      background: var(--maroon-dark);
+      inset: 0;
+      background:
+        radial-gradient(120% 90% at 50% 42%,
+          #9A1D3F 0%,
+          var(--maroon) 38%,
+          var(--maroon-deep, #4A0F22) 100%);
       will-change: transform;
     }
 
-    .intro-curtain-l {
-      left: 0;
-      animation: curtainLeft 0.75s cubic-bezier(0.76, 0, 0.24, 1) 1.8s forwards;
-    }
-
-    .intro-curtain-r {
-      right: 0;
-      animation: curtainRight 0.75s cubic-bezier(0.76, 0, 0.24, 1) 1.8s forwards;
-    }
-
-    /* Centred logo on top of curtains */
-    .intro-logo-wrap {
+    .intro-stage {
       position: absolute;
       inset: 0;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 16px;
-      z-index: 1;
-      animation: introLogoReveal 2.2s ease forwards;
+      text-align: center;
+      will-change: transform, opacity;
     }
 
-    .intro-logo-wrap img {
-      width: min(220px, 55vw);
+    .intro-rule {
+      display: block;
+      width: min(160px, 40vw);
+      height: 1px;
+      margin-bottom: 34px;
+      background: linear-gradient(90deg,
+        transparent 0%, #e8b84b 22%, #f3d287 50%, #e8b84b 78%, transparent 100%);
+      transform: scaleX(0);
+      opacity: 0;
+    }
+
+    .intro-mark {
+      width: min(190px, 46vw);
       height: auto;
-      filter: drop-shadow(0 4px 24px rgba(0,0,0,0.5));
+      opacity: 0;
+      /* No drop-shadow: the source is a square JPG, so a shadow would trace
+         its edges and give away that it is not a transparent cut-out. */
+    }
+
+    .intro-name {
+      margin-top: 26px;
+      font-family: var(--font-display);
+      font-size: clamp(0.62rem, 1.6vw, 0.78rem);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.62em;
+      /* Offsets the trailing letter-space so the text stays optically centred */
+      text-indent: 0.62em;
+      color: rgba(255, 255, 255, 0.92);
+      opacity: 0;
     }
 
     .intro-tagline {
+      margin-top: 12px;
       font-family: var(--font-body);
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 500;
-      letter-spacing: 0.2em;
+      letter-spacing: 0.24em;
       text-transform: uppercase;
-      color: rgba(255,255,255,0.6);
-      animation: introTaglineReveal 2.2s ease forwards;
-    }
-
-    .intro-border {
-      position: absolute;
-      bottom: calc(50% - 80px);
-      left: 50%;
-      transform: translateX(-50%);
-      height: 1px;
-      background: rgba(255,255,255,0.25);
-      animation: introBorderPulse 2.2s ease forwards;
-    }
-
-    /* Animations are opt-in: JS adds .js-animations to <html> only when
-       IntersectionObserver is available. Without it, content is always visible. */
-    .js-animations .fade-up {
+      color: #e8b84b;
       opacity: 0;
-      transform: translateY(32px);
-      transition: opacity 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
 
-    .js-animations .fade-up.visible {
+    #page-intro.is-playing .intro-rule {
+      animation: introRuleDraw 0.85s cubic-bezier(0.16, 1, 0.3, 1) 0.15s forwards;
+    }
+    #page-intro.is-playing .intro-mark {
+      animation: introMarkRise 1s cubic-bezier(0.16, 1, 0.3, 1) 0.45s forwards;
+    }
+    #page-intro.is-playing .intro-name {
+      animation: introNameSettle 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.75s forwards;
+    }
+    #page-intro.is-playing .intro-tagline {
+      animation: introTaglineRise 0.8s cubic-bezier(0.16, 1, 0.3, 1) 1s forwards;
+    }
+
+    #page-intro.is-leaving .intro-stage {
+      animation: introStageExit 0.55s cubic-bezier(0.7, 0, 0.84, 0) forwards;
+    }
+    #page-intro.is-leaving .intro-field {
+      animation: introFieldExit 0.9s cubic-bezier(0.76, 0, 0.24, 1) 0.15s forwards;
+    }
+
+    /* =============================================
+       SCROLL REVEAL SYSTEM
+       ---------------------------------------------
+       Hiding rules are scoped to `html.js:not(.no-reveal)`:
+
+         • JS disabled/blocked     -> no html.js   -> nothing hides
+         • No IntersectionObserver -> .no-reveal   -> nothing hides
+         • JS present but throws   -> watchdog in script.js adds
+           .no-reveal              -> nothing hides
+
+       The failure mode is "no animation", never "blank page".
+
+       Motion vocabulary: short travel (22px, not 32) with a long expo
+       settle. Small distance + slow finish reads considered; large
+       distance + quick finish reads cheap.
+    ============================================= */
+    :root {
+      --ease-reveal: cubic-bezier(0.16, 1, 0.3, 1);
+      --reveal-travel: 22px;
+      --reveal-dur: 1.05s;
+    }
+
+    html.js:not(.no-reveal) .fade-up {
+      opacity: 0;
+      transform: translateY(var(--reveal-travel));
+      transition:
+        opacity var(--reveal-dur) var(--ease-reveal) var(--reveal-delay, 0ms),
+        transform var(--reveal-dur) var(--ease-reveal) var(--reveal-delay, 0ms),
+        filter var(--reveal-dur) var(--ease-reveal) var(--reveal-delay, 0ms);
+      will-change: opacity, transform;
+    }
+
+    html.js:not(.no-reveal) .fade-in {
+      opacity: 0;
+      transition: opacity var(--reveal-dur) var(--ease-reveal) var(--reveal-delay, 0ms);
+      will-change: opacity;
+    }
+
+    /* Headings get a whisper of defocus that sharpens as they settle.
+       Fine pointers only: filter:blur() forces an offscreen buffer every
+       frame, which is measurably expensive on mobile GPUs. */
+    @media (hover: hover) and (pointer: fine) {
+      html.js:not(.no-reveal) .blur-reveal { filter: blur(7px); }
+    }
+
+    /* The hero opts out of the observer (see script.js) because its entrance
+       is timed against the intro overlay rather than against scroll. It still
+       uses the same transition + --reveal-delay, so hero and body content
+       share one motion vocabulary. */
+    html.js:not(.no-reveal) .hero .fade-up {
+      --reveal-travel: 26px;
+    }
+
+    html.js .fade-up.visible,
+    html.js .fade-in.visible {
       opacity: 1;
       transform: translateY(0);
+      filter: blur(0);
     }
 
-    .js-animations .fade-in {
-      opacity: 0;
-      transition: opacity 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    /* Drop the compositor hint once settled, so a long page does not pin
+       dozens of layers in GPU memory. */
+    html.js .fade-up.reveal-done,
+    html.js .fade-in.reveal-done {
+      will-change: auto;
     }
 
-    .js-animations .fade-in.visible {
-      opacity: 1;
+    /* Wipe-up reveal for imagery */
+    html.js:not(.no-reveal) .mask-reveal {
+      clip-path: inset(100% 0 0 0);
+      -webkit-clip-path: inset(100% 0 0 0);
+      transition:
+        clip-path 1.25s var(--ease-reveal) var(--reveal-delay, 0ms),
+        -webkit-clip-path 1.25s var(--ease-reveal) var(--reveal-delay, 0ms);
+    }
+
+    html.js .mask-reveal.visible,
+    html.js .fade-up.visible .mask-reveal {
+      clip-path: inset(0 0 0 0);
+      -webkit-clip-path: inset(0 0 0 0);
+    }
+
+    /* Gold rules draw out from the left edge. transform-origin matters:
+       scaling from centre reads decorative; from the left it reads like a
+       line actually being drawn. */
+    html.js:not(.no-reveal) .accent-line {
+      transform: scaleX(0);
+      transform-origin: left center;
+      transition: transform 0.9s var(--ease-reveal) var(--reveal-delay, 0ms);
+    }
+
+    html.js .accent-line.visible {
+      transform: scaleX(1);
+    }
+
+    /* Slow vertical drift for section imagery. JS writes --parallax. */
+    html.js:not(.no-reveal) .parallax-media > img,
+    html.js:not(.no-reveal) .parallax-media > .parallax-inner {
+      transform: translate3d(0, var(--parallax, 0px), 0) scale(1.12);
     }
 
     /* LAYOUT */
@@ -429,13 +548,25 @@
       left: 0;
       right: 0;
       z-index: 1000;
-      transition: background 0.35s, box-shadow 0.35s, padding 0.35s, transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      transition: background 0.35s, box-shadow 0.35s, padding 0.35s, transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
       padding: 14px 0;
-      transform: translateY(-100%); /* Initial state hidden for animation */
+      /* RESTING STATE IS VISIBLE.
+
+         This was translateY(-100%) with JS adding .nav-visible to bring it
+         down. That inverts the risk: the navbar only existed if JS ran all
+         the way to playEntranceSequence(). When script.js failed to parse,
+         the site had no navigation bar at all.
+
+         Now the nav is visible by default and only *temporarily* lifted
+         while the intro panel covers it. Removing a class cannot strand it. */
+      transform: translateY(0);
     }
 
-    #navbar.nav-visible {
-      transform: translateY(0);
+    /* Held above the fold only while the intro overlay is on screen.
+       Dropping .nav-armed transitions it back down behind the rising panel. */
+    html.js #navbar.nav-armed {
+      transform: translateY(-100%);
+      transition: none;
     }
 
     #navbar.nav-instant {
@@ -2297,17 +2428,45 @@
       }
     }
 
+    /* Reduced motion: everything in its final state, instantly.
+       Order matters — the blanket `*` rule collapses durations, so the
+       specific rules must also neutralise the *starting* values. Otherwise
+       elements snap to opacity:0 and never come back, which is exactly how
+       an "accessible" site ends up blank. */
     @media (prefers-reduced-motion: reduce) {
 
-      .fade-up,
-      .fade-in {
-        opacity: 1;
-        transform: none;
-        transition: none;
+      html {
+        scroll-behavior: auto;
       }
 
-      * {
+      html.js .fade-up,
+      html.js .fade-in,
+      html.js .blur-reveal,
+      html.js .accent-line,
+      html.js .mask-reveal {
+        opacity: 1 !important;
+        transform: none !important;
+        filter: none !important;
+        clip-path: none !important;
+        -webkit-clip-path: none !important;
+        transition: none !important;
+      }
+
+      html.js .parallax-media > img,
+      html.js .parallax-media > .parallax-inner {
+        transform: none !important;
+      }
+
+      /* Intro is decorative — skip it rather than flash it. */
+      #page-intro {
+        display: none !important;
+      }
+
+      *,
+      *::before,
+      *::after {
         animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
       }
     }

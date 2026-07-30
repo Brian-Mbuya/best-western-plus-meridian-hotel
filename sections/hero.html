@@ -85,7 +85,10 @@
       </div>
 
       <!-- Trust signals -->
-      <div class="hero-trust fade-up" data-delay="0.46" aria-label="Included with your stay">
+      <!-- data-delay was 0.46, which revealed this row 4th even though it sits
+           last on screen — the cascade visibly jumped back up the hero. Delays
+           must follow visual order: badge .2, title .4, sub .6, CTAs .8, trust 1. -->
+      <div class="hero-trust fade-up" data-delay="1.0" aria-label="Included with your stay">
         <span class="hero-trust-item">Complimentary Breakfast</span>
         <span class="hero-trust-sep" aria-hidden="true"></span>
         <span class="hero-trust-item">Free Wi-Fi &amp; Parking</span>

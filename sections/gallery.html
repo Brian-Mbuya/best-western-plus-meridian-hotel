@@ -168,20 +168,20 @@
     <!-- TripAdvisor Style Hero Grid -->
     <div class="ta-hero-grid fade-up" id="ta-hero-grid">
       <!-- Main big image -->
-      <div class="ta-hero-item main-item" onclick="document.getElementById('ta-gallery-modal').classList.add('open'); document.body.style.overflow='hidden'; document.querySelector('.ta-sidebar .gallery-filter-btn[data-filter=\'all\']')?.click();">
+      <div class="ta-hero-item main-item" data-gallery-open="all">
         <img src="gallery/hotel/hotel-lobby.jpg" alt="Hotel Lobby">
       </div>
       <!-- Smaller images -->
-      <div class="ta-hero-item" onclick="document.getElementById('ta-gallery-modal').classList.add('open'); document.body.style.overflow='hidden'; document.querySelector('.ta-sidebar .gallery-filter-btn[data-filter=\'rooms\']')?.click();">
+      <div class="ta-hero-item" data-gallery-open="rooms">
         <img src="gallery/coworker/executive-room.jpg" alt="Executive Room">
       </div>
-      <div class="ta-hero-item" onclick="document.getElementById('ta-gallery-modal').classList.add('open'); document.body.style.overflow='hidden'; document.querySelector('.ta-sidebar .gallery-filter-btn[data-filter=\'facilities\']')?.click();">
+      <div class="ta-hero-item" data-gallery-open="facilities">
         <img src="gallery/coworker/pool.webp" alt="Rooftop Pool">
       </div>
     </div>
 
     <div style="margin-top: 40px; text-align: center;" class="fade-up">
-      <button class="btn-primary" onclick="document.getElementById('ta-gallery-modal').classList.add('open'); document.body.style.overflow='hidden'; document.querySelector('.ta-sidebar .gallery-filter-btn[data-filter=\'all\']')?.click();">
+      <button class="btn-primary" data-gallery-open="all">
         View all photos
       </button>
     </div>
@@ -363,7 +363,9 @@
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
     </button>
     <div class="lightbox-image-wrap">
-      <img id="lightbox-img" src="" alt="" />
+      <!-- No src="" here: an empty src makes the browser re-request the page
+           URL and paint a broken-image icon. JS sets .src on open. -->
+      <img id="lightbox-img" alt="" />
       <p class="lightbox-caption" id="lightbox-caption"></p>
     </div>
     <button class="lightbox-arrow lightbox-next" id="lightbox-next" aria-label="Next image">

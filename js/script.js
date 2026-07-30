@@ -10,7 +10,102 @@
  * ---------------------------------------------------------------
  */
 
-document.addEventListener('sections:ready', init);
+/*
+ * Start init() once every section fragment is in the DOM.
+ *
+ * Prefers the promise published by include-sections.js; the event listener is
+ * a fallback for the case where an older include-sections.js is cached and
+ * does not publish it. runInit() is idempotent, so both firing is harmless.
+ */
+let initHasRun = false;
+
+function runInit() {
+  if (initHasRun) return;
+  initHasRun = true;
+  // One broken feature must not take the rest of the page down with it.
+  try {
+    init();
+  } catch (err) {
+    console.error('[script] init() failed:', err);
+  } finally {
+    document.documentElement.classList.add('reveal-ready');
+  }
+}
+
+if (window.sectionsReady && typeof window.sectionsReady.then === 'function') {
+  window.sectionsReady.then(runInit, runInit);
+} else {
+  document.addEventListener('sections:ready', runInit);
+}
+
+/*
+ * Watchdog. The reveal styles hide content until JS reveals it, so the one
+ * unacceptable outcome is "still hidden forever". Two failures cause it:
+ *
+ *   1. init() never ran            -> .reveal-ready missing.
+ *   2. init() ran but the observer never DELIVERS. IntersectionObserver
+ *      callbacks are dispatched as part of the frame lifecycle, so an
+ *      environment that suspends rendering (backgrounded/prerendered tab,
+ *      some embedded webviews) wires it up fine and then never fires it.
+ *      Only checking the outcome catches that.
+ */
+function checkForStrandedContent() {
+  const de = document.documentElement;
+  if (de.classList.contains('no-reveal')) return true;
+
+  if (!de.classList.contains('reveal-ready')) {
+    console.warn('[script] reveal engine never started — showing all content.');
+    de.classList.add('no-reveal');
+    return true;
+  }
+
+  const vh = window.innerHeight;
+  const stranded = Array.prototype.filter.call(
+    document.querySelectorAll('.fade-up, .fade-in, .mask-reveal, .accent-line'),
+    function (el) {
+      if (el.classList.contains('visible')) return false;
+      const r = el.getBoundingClientRect();
+      if (r.width === 0 && r.height === 0) return false;   // display:none / filtered
+      return r.top < vh * 0.9 && r.bottom > 0;             // genuinely on screen
+    }
+  );
+
+  if (stranded.length) {
+    console.warn('[script] ' + stranded.length + ' element(s) on screen never ' +
+      'revealed — IntersectionObserver is not delivering. Showing all content.');
+    de.classList.add('no-reveal');
+    return true;
+  }
+  return false;
+}
+
+setTimeout(checkForStrandedContent, 3000);
+
+/*
+ * Re-check after the user scrolls. The 3s check samples one scroll position;
+ * at the top of the page nearly every target is legitimately still below the
+ * fold, so a totally dead observer looks identical to a healthy one. Sampling
+ * again after scrolling catches it. Time-boxed rather than count-boxed —
+ * a fixed budget gets burned by early checks that pass near the top.
+ */
+(function watchScrollForStrandedContent() {
+  const DEADLINE = performance.now() + 20000;
+  let pending = false;
+
+  function onScroll() {
+    if (pending) return;
+    pending = true;
+    setTimeout(function () {
+      pending = false;
+      // Give the observer a beat to fire for newly-visible elements first.
+      if (checkForStrandedContent() || performance.now() > DEADLINE) {
+        window.removeEventListener('scroll', onScroll);
+      }
+    }, 900);
+  }
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+})();
 
 
 function init() {
@@ -20,99 +115,134 @@ function init() {
   const mobileMenu = document.getElementById('mobile-menu');
   let menuOpen = false;
 
-  window.addEventListener('scroll', () => {
-    if (window.scrollY > 60) {
-      navbar.classList.add('scrolled');
-    } else {
-      navbar.classList.remove('scrolled');
-    }
-  });
+  // Every lookup below is null-guarded. include-sections.js is built to
+  // survive a fragment that fails to load (it logs and continues), but
+  // init() used to dereference these blind — so one missing fragment threw
+  // here and killed every feature further down the file.
 
-  hamburger.addEventListener('click', () => {
-    menuOpen = !menuOpen;
-    hamburger.classList.toggle('open', menuOpen);
-    mobileMenu.classList.toggle('open', menuOpen);
-    hamburger.setAttribute('aria-expanded', menuOpen);
-    document.body.style.overflow = menuOpen ? 'hidden' : '';
-  });
+  if (navbar) {
+    window.addEventListener('scroll', () => {
+      navbar.classList.toggle('scrolled', window.scrollY > 60);
+    }, { passive: true });
+    // Apply immediately, in case the page was restored mid-scroll.
+    navbar.classList.toggle('scrolled', window.scrollY > 60);
+  }
+
+  function setMenu(open) {
+    menuOpen = open;
+    if (hamburger) {
+      hamburger.classList.toggle('open', open);
+      hamburger.setAttribute('aria-expanded', String(open));
+    }
+    if (mobileMenu) mobileMenu.classList.toggle('open', open);
+    document.body.style.overflow = open ? 'hidden' : '';
+  }
+
+  if (hamburger) {
+    hamburger.addEventListener('click', () => setMenu(!menuOpen));
+  }
 
   // Close mobile menu on nav link click
   document.querySelectorAll('[data-mobile-page]').forEach(link => {
-    link.addEventListener('click', () => {
-      menuOpen = false;
-      hamburger.classList.remove('open');
-      mobileMenu.classList.remove('open');
-      hamburger.setAttribute('aria-expanded', false);
-      document.body.style.overflow = '';
-    });
+    link.addEventListener('click', () => setMenu(false));
   });
 
-  // ─── SCROLL ANIMATION ──────────────────────────────────
-  // Only add invisible states + observer when IntersectionObserver is supported.
-  // This is a progressive enhancement: content is always visible without JS.
-  if ('IntersectionObserver' in window) {
-    // Signal CSS to apply the initial opacity:0 / translateY states
-    document.documentElement.classList.add('js-animations');
+  // ─── SCROLL REVEAL ENGINE ──────────────────────────────
+  /*
+   * One observer drives every reveal on the page.
+   *
+   * Stagger is a CSS transition-delay (via the --reveal-delay custom
+   * property) rather than a setTimeout per element. Two reasons:
+   *
+   *   1. setTimeout stagger keeps firing after the user has scrolled past,
+   *      so fast-scrolling a long page queues dozens of pending callbacks
+   *      that pop elements in long after they left the viewport.
+   *   2. Delays live on the compositor alongside the transition, so they
+   *      stay in sync with it instead of drifting under load.
+   *
+   * The hiding styles are now keyed off `html.js` (set inline in <head>)
+   * rather than a `.js-animations` class added here, so content is never
+   * hidden during the window between first paint and init() running.
+   */
+  const REVEAL_SELECTOR = '.fade-up, .fade-in, .mask-reveal, .accent-line';
 
-    const observerOptions = { threshold: 0, rootMargin: '0px 0px -5% 0px' };
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          const delay = entry.target.dataset.delay || 0;
-          setTimeout(() => {
-            entry.target.classList.add('visible');
-          }, delay * 1000);
-          observer.unobserve(entry.target);
-        }
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+      const el = entry.target;
+
+      // Explicit data-delay (seconds) wins; otherwise use the auto-assigned
+      // sibling index so groups cascade instead of arriving as one slab.
+      const explicit = parseFloat(el.dataset.delay);
+      if (!Number.isNaN(explicit)) {
+        el.style.setProperty('--reveal-delay', Math.round(explicit * 1000) + 'ms');
+      } else if (el.dataset.revealIndex) {
+        el.style.setProperty('--reveal-delay', el.dataset.revealIndex * 90 + 'ms');
+      }
+
+      el.classList.add('visible');
+      revealObserver.unobserve(el);
+
+      el.addEventListener('transitionend', function done(e) {
+        if (e.target !== el) return;          // ignore bubbling child transitions
+        el.classList.add('reveal-done');
+        el.style.removeProperty('--reveal-delay');
+        el.removeEventListener('transitionend', done);
       });
-    }, observerOptions);
-
-    document.querySelectorAll('.fade-up, .fade-in').forEach(el => {
-      if (!el.closest('.hero')) observer.observe(el);
     });
+  }, {
+    threshold: 0.12,
+    // Begin slightly before the element reaches the fold so it is already
+    // settling by the time it sits comfortably on screen.
+    rootMargin: '0px 0px -12% 0px',
+  });
 
-    const lineObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.style.animation = 'slideRight 0.6s ease forwards';
-          entry.target.style.opacity = '1';
-          lineObserver.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0, rootMargin: '0px 0px -5% 0px' });
-    document.querySelectorAll('.accent-line').forEach(el => {
-      el.style.opacity = '0';
-      lineObserver.observe(el);
-    });
-  }
-  // If IntersectionObserver is NOT supported: no .js-animations class is added,
-  // so all .fade-up/.fade-in elements remain fully visible (no opacity:0 applied).
+  // Auto-stagger: number each element among its reveal-siblings so card grids
+  // and stat rows cascade without hand-authored data-delay values.
+  const staggerGroups = new Map();
+  document.querySelectorAll(REVEAL_SELECTOR).forEach((el) => {
+    if (el.closest('.hero')) return;          // hero runs on the intro timeline
+    const parent = el.parentElement;
+    if (parent && !el.dataset.delay) {
+      const n = staggerGroups.get(parent) || 0;
+      // Cap the cascade: past ~5 items the tail reads as lag, not rhythm.
+      el.dataset.revealIndex = Math.min(n, 5);
+      staggerGroups.set(parent, n + 1);
+    }
+    revealObserver.observe(el);
+  });
 
   // ─── HERO & NAV ENTRANCE ORCHESTRATION ────────────────
+  /*
+   * Driven by the introComplete promise published by the inline controller in
+   * index.html, so this runs correctly whether the intro is still playing,
+   * already finished, or was skipped entirely. The previous version listened
+   * for an 'intro:finished' event from inside init() — if sections loaded
+   * slowly the event fired first, was missed, and the hero stayed invisible.
+   */
   function playEntranceSequence() {
-    if (navbar) navbar.classList.add('nav-visible');
+    // Dropping .nav-armed lets the navbar transition back to its resting
+    // (visible) position. If it was never armed this is a harmless no-op.
+    if (navbar) navbar.classList.remove('nav-armed');
 
-    // Only animate hero text if animations are enabled (IntersectionObserver present)
-    if (document.documentElement.classList.contains('js-animations')) {
-      document.querySelectorAll('.hero .fade-up, .hero .fade-in').forEach((el) => {
-        const delay = parseFloat(el.dataset.delay || 0);
-        el.style.transitionDelay = `${delay + 0.1}s`;
-        setTimeout(() => {
-          el.classList.add('visible');
-        }, 50);
-      });
-    }
+    document.querySelectorAll('.hero .fade-up, .hero .fade-in').forEach((el) => {
+      const delay = parseFloat(el.dataset.delay) || 0;
+      el.style.setProperty('--reveal-delay', Math.round(delay * 1000) + 'ms');
+      el.classList.add('visible');
+    });
   }
 
-  if (window._skipIntroAnimation) {
-    playEntranceSequence();
+  // Arm the navbar only while the intro is genuinely on screen, so it can
+  // drop in behind the rising panel.
+  const introEl = document.getElementById('page-intro');
+  if (navbar && introEl && !introEl.hidden) navbar.classList.add('nav-armed');
+
+  // .catch is not decorative: if the intro controller ever rejects, the hero
+  // must still be revealed rather than left at opacity 0.
+  if (window.introComplete && typeof window.introComplete.then === 'function') {
+    window.introComplete.then(playEntranceSequence).catch(playEntranceSequence);
   } else {
-    document.addEventListener('intro:finished', playEntranceSequence);
-    // Fallback if the event fired before sections were ready
-    const intro = document.getElementById('page-intro');
-    if (intro && intro.classList.contains('done')) {
-      playEntranceSequence();
-    }
+    playEntranceSequence();
   }
 
 
@@ -135,16 +265,24 @@ function init() {
       // Clamp / wrap
       index = ((index % TOTAL) + TOTAL) % TOTAL;
 
-      // Deactivate current
+      // dots[] is indexed by slide, but the two lists live in different
+      // parts of hero.html and can drift apart. Guard rather than throw — a
+      // missing dot must not stop the slideshow from advancing.
+      const prevDot = dots[current];
+      if (prevDot) {
+        prevDot.classList.remove('active');
+        prevDot.removeAttribute('aria-current');
+      }
       slides[current].classList.remove('active');
-      dots[current].classList.remove('active');
-      dots[current].removeAttribute('aria-current');
 
-      // Activate next
       current = index;
       slides[current].classList.add('active');
-      dots[current].classList.add('active');
-      dots[current].setAttribute('aria-current', 'true');
+
+      const nextDot = dots[current];
+      if (nextDot) {
+        nextDot.classList.add('active');
+        nextDot.setAttribute('aria-current', 'true');
+      }
     }
 
     function advance() {
@@ -183,90 +321,98 @@ function init() {
     startTimer();
   })();
 
-  // Hero Contact Scroll & Arrival Effect
+  // Hero "Contact Us" → arrival effect on the contact section
+  /*
+   * This previously waited on a MutationObserver watching document.body for
+   * the sections to appear. By the time init() runs they are ALREADY in the
+   * DOM, and a MutationObserver only reports *future* mutations — so it
+   * should never have fired. It worked purely by accident, because
+   * renderExplorer() later rewrote some innerHTML and tripped the observer.
+   * Any change to the explorer would have silently broken it.
+   *
+   * init() already runs after sections:ready, so wire it directly.
+   */
   (function initHeroContactScroll() {
-    const observer = new MutationObserver(() => {
-      const scrollBtn = document.getElementById('heroContactScrollBtn');
-      const contactSection = document.getElementById('contact');
-      
-      if (scrollBtn && contactSection) {
-        // Smooth scroll to contact
-        scrollBtn.addEventListener('click', (e) => {
-          e.preventDefault();
-          const targetPos = contactSection.getBoundingClientRect().top + window.scrollY;
-          window.scrollTo({
-            top: targetPos,
-            behavior: 'smooth'
-          });
-        });
+    const scrollBtn = document.getElementById('heroContactScrollBtn');
+    const contactSection = document.getElementById('contact');
+    if (!scrollBtn || !contactSection) return;
 
-        // Arrival effect using IntersectionObserver
-        const arrivalObserver = new IntersectionObserver((entries) => {
-          entries.forEach(entry => {
-            if (entry.isIntersecting) {
-              contactSection.classList.add('contact-arrival-effect');
-              
-              // Remove class after animation finishes (1s) to return to normal
-              setTimeout(() => {
-                contactSection.classList.remove('contact-arrival-effect');
-              }, 1000);
-              
-              // Only trigger once per page load
-              arrivalObserver.disconnect();
-            }
-          });
-        }, { threshold: 0.2 });
-        
-        // Ensure we only observe after clicking the button?
-        // No, the user said "When the Contact section enters the viewport",
-        // but maybe they meant just naturally scrolling to it. Let's observe it!
-        scrollBtn.addEventListener('click', () => {
-          // If we want it strictly on click, we connect it here.
-          // The prompt says "When the Contact Us button is clicked: Smooth scroll... When the Contact section enters the viewport: Apply subtle premium arrival effect".
-          // This means if we scroll via the button, it triggers. 
-          arrivalObserver.observe(contactSection);
-        });
+    let arrivalPlayed = false;
+    const arrivalObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting || arrivalPlayed) return;
+        arrivalPlayed = true;
+        contactSection.classList.add('contact-arrival-effect');
+        setTimeout(() => contactSection.classList.remove('contact-arrival-effect'), 1000);
+        arrivalObserver.disconnect();
+      });
+    }, { threshold: 0.2 });
 
-        observer.disconnect(); // Only run once
-      }
-    });
-    
-    // Start observing document.body for injected sections
-    observer.observe(document.body, { childList: true, subtree: true });
+    // Arm the effect on click, then let the shared smooth-scroll handler plus
+    // html{scroll-padding-top} do the scrolling — no manual offset maths, so
+    // the heading clears the fixed navbar like every other anchor.
+    scrollBtn.addEventListener('click', () => arrivalObserver.observe(contactSection));
   })();
 
   // ─── BOOKING WIDGET ────────────────────────────────────
   const checkinInput = document.getElementById('checkin');
   const checkoutInput = document.getElementById('checkout');
-  const today = new Date();
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const dayAfter = new Date(today);
-  dayAfter.setDate(dayAfter.getDate() + 2);
+  const availBtn = document.getElementById('check-avail-btn');
 
-  checkinInput.min = today.toISOString().split('T')[0];
-  checkinInput.value = tomorrow.toISOString().split('T')[0];
-  checkoutInput.value = dayAfter.toISOString().split('T')[0];
-  checkoutInput.min = tomorrow.toISOString().split('T')[0];
+  if (checkinInput && checkoutInput) {
+    // Dates are formatted from local calendar parts, NOT toISOString().
+    // toISOString() converts to UTC first, so for anyone east of Greenwich —
+    // Nairobi is UTC+3 — an evening visit rolled the date forward a day and
+    // the widget opened pre-set to the wrong night.
+    const fmt = (d) =>
+      d.getFullYear() + '-' +
+      String(d.getMonth() + 1).padStart(2, '0') + '-' +
+      String(d.getDate()).padStart(2, '0');
 
-  checkinInput.addEventListener('change', () => {
-    const ci = new Date(checkinInput.value);
-    const co = new Date(checkoutInput.value);
-    const nextDay = new Date(ci);
-    nextDay.setDate(nextDay.getDate() + 1);
-    if (co <= ci) {
-      checkoutInput.value = nextDay.toISOString().split('T')[0];
-    }
-    checkoutInput.min = nextDay.toISOString().split('T')[0];
-  });
+    const addDays = (d, n) => {
+      const out = new Date(d);
+      out.setDate(out.getDate() + n);
+      return out;
+    };
 
-  document.getElementById('check-avail-btn').addEventListener('click', () => {
-    const ci = checkinInput.value;
-    const co = checkoutInput.value;
-    const guests = document.getElementById('guests').value;
-    if (!ci || !co) { showToast('Please select check-in and check-out dates.'); return; }
-    window.open(`https://www.bestwestern.com/en_US/book/hotel-rooms.75152.html?checkIn=${ci}&checkOut=${co}&numberOfAdults=${guests}`, '_blank');
-  });
+    const today = new Date();
+
+    checkinInput.min = fmt(today);
+    checkinInput.value = fmt(addDays(today, 1));
+    checkoutInput.min = fmt(addDays(today, 2));
+    checkoutInput.value = fmt(addDays(today, 2));
+
+    checkinInput.addEventListener('change', () => {
+      if (!checkinInput.value) return;
+      // Parse as local midnight; `new Date('2026-07-30')` parses as UTC and
+      // reintroduces the same off-by-one on comparison.
+      const [y, m, d] = checkinInput.value.split('-').map(Number);
+      const nextDay = addDays(new Date(y, m - 1, d), 1);
+
+      checkoutInput.min = fmt(nextDay);
+      if (!checkoutInput.value || checkoutInput.value <= checkinInput.value) {
+        checkoutInput.value = fmt(nextDay);
+      }
+    });
+  }
+
+  if (availBtn) {
+    availBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const ci = checkinInput ? checkinInput.value : '';
+      const co = checkoutInput ? checkoutInput.value : '';
+      const guestsEl = document.getElementById('guests');
+      const guests = guestsEl ? guestsEl.value : '1';
+      if (!ci || !co) { showToast('Please select check-in and check-out dates.'); return; }
+      window.open(
+        'https://www.bestwestern.com/en_US/book/hotel-rooms.75152.html' +
+        `?checkIn=${encodeURIComponent(ci)}&checkOut=${encodeURIComponent(co)}` +
+        `&numberOfAdults=${encodeURIComponent(guests)}`,
+        '_blank',
+        'noopener'
+      );
+    });
+  }
 
   // ─── NEIGHBORHOOD EXPLORER ─────────────────────────────
   const attractions = {
@@ -314,6 +460,7 @@ function init() {
 
   function renderExplorer() {
     const list = document.getElementById('explorer-list');
+    if (!list) return;
     const items = attractions[activeCategory];
     list.innerHTML = items.map((item, i) => `
     <div class="explorer-item ${activeItem === i ? 'active' : ''}"
@@ -349,6 +496,7 @@ function init() {
 
   function renderDetail(item) {
     const panel = document.getElementById('explorer-detail');
+    if (!panel) return;
     const pct = Math.min((item.maxDist / 100) * 100, 100);
     panel.innerHTML = `
     <p class="explorer-detail-category">${item.category}</p>
@@ -404,7 +552,9 @@ function init() {
   }
 
   function renderPlaceholder() {
-    document.getElementById('explorer-detail').innerHTML = `
+    const panel = document.getElementById('explorer-detail');
+    if (!panel) return;
+    panel.innerHTML = `
     <p class="eyebrow">Select a destination</p>
     <p class="display-md" style="color:var(--muted); margin-top:8px;">Choose an attraction to see how close it is from the Meridian.</p>
   `;
@@ -427,11 +577,16 @@ function init() {
   // NOTE: this validates and shows a success toast, but does not transmit
   // the message anywhere yet. A real backend/email endpoint is required
   // before launch — see the comment in sections/contact.html.
-  document.getElementById('contact-form').addEventListener('submit', (e) => {
+  const contactForm = document.getElementById('contact-form');
+  if (contactForm) contactForm.addEventListener('submit', (e) => {
     e.preventDefault();
-    const name = document.getElementById('contact-name').value.trim();
-    const email = document.getElementById('contact-email').value.trim();
-    const msg = document.getElementById('contact-message').value.trim();
+    const nameEl = document.getElementById('contact-name');
+    const emailEl = document.getElementById('contact-email');
+    const msgEl = document.getElementById('contact-message');
+    if (!nameEl || !emailEl || !msgEl) return;
+    const name = nameEl.value.trim();
+    const email = emailEl.value.trim();
+    const msg = msgEl.value.trim();
     if (!name || !email || !msg) {
       showToast('Please fill in your name, email, and message.');
       return;
@@ -444,50 +599,96 @@ function init() {
     e.target.reset();
   });
 
-  // ─── EVENT ENQUIRY FORM (Meetings & Events) ────────────
-  // Added to replace the previous mailto:-based form, which silently
-  // failed for any guest without a configured desktop email client and
-  // exposed the destination address in a plain GET query string. Same
-  // caveat as the contact form above: this needs a real backend before
-  // launch to actually deliver the enquiry anywhere.
-  const eventForm = document.getElementById('event-enquiry-form');
-  if (eventForm) {
-    eventForm.addEventListener('submit', (e) => {
+  // ─── CONFERENCE ENQUIRY FORM (Meetings & Events) ───────
+  /*
+   * The id here was wrong. This handler looked for '#event-enquiry-form' with
+   * fields '#event-subject' / '#event-guests', but the markup in
+   * sections/meetings.html defines '#conf-inquiry-form' with '#conf-event-name'
+   * and '#conf-event-date'. Nothing matched, so no submit handler was ever
+   * attached and the "Send Conference Inquiry" button fell through to a native
+   * GET submit — reloading the page with ?event=…&date=… in the URL and losing
+   * whatever the guest had typed.
+   *
+   * Same caveat as the contact form: this validates and confirms, but does not
+   * transmit anywhere yet. A real backend endpoint is required before launch.
+   */
+  const confForm = document.getElementById('conf-inquiry-form');
+  if (confForm) {
+    confForm.addEventListener('submit', (e) => {
       e.preventDefault();
-      const subject = document.getElementById('event-subject').value.trim();
-      const guests = document.getElementById('event-guests').value;
-      if (guests && Number(guests) > 350) {
-        showToast('Kyber Hall holds up to 350 guests — please call us directly for larger events.');
+      const nameEl = document.getElementById('conf-event-name');
+      const dateEl = document.getElementById('conf-event-date');
+      const eventName = nameEl ? nameEl.value.trim() : '';
+      const eventDate = dateEl ? dateEl.value : '';
+
+      if (!eventName) {
+        showToast('Please tell us the event or company name so we can help.');
+        if (nameEl) nameEl.focus();
         return;
       }
-      showToast('Thank you' + (subject ? ' — "' + subject + '"' : '') + '. Our events team will follow up shortly.');
-      eventForm.reset();
+      // Guard against enquiries for dates that have already passed.
+      if (eventDate) {
+        const [y, m, d] = eventDate.split('-').map(Number);
+        const chosen = new Date(y, m - 1, d);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        if (chosen < today) {
+          showToast('That date has already passed — please pick an upcoming date.');
+          if (dateEl) dateEl.focus();
+          return;
+        }
+      }
+
+      showToast('Thank you — "' + eventName + '". Our events team will follow up shortly.');
+      confForm.reset();
     });
   }
 
   // ─── TOAST ─────────────────────────────────────────────
-  function showToast(message) {
+  // `duration` is optional; some call sites pass one, and the previous
+  // single-parameter signature silently ignored it.
+  function showToast(message, duration) {
     const toast = document.getElementById('toast');
+    if (!toast) return;
     toast.textContent = message;
     toast.style.display = 'block';
     toast.style.animation = 'fadeUp 0.3s ease';
     clearTimeout(window._toastTimer);
     window._toastTimer = setTimeout(() => {
       toast.style.display = 'none';
-    }, 4500);
+    }, duration || 4500);
   }
 
   // ─── SMOOTH SCROLL ─────────────────────────────────────
-  document.querySelectorAll('a[href^="#"]').forEach(a => {
-    a.addEventListener('click', (e) => {
-      const id = a.getAttribute('href');
-      if (id === '#') return;
-      const el = document.querySelector(id);
-      if (el) {
-        e.preventDefault();
-        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    });
+  /*
+   * Delegated, so it also covers links inside panels rendered later (the
+   * conference planner and neighbourhood explorer both rebuild their markup).
+   * The previous version bound listeners once at init time, so any anchor
+   * injected afterwards silently lost its smooth scroll.
+   *
+   * Vertical offset comes from html{scroll-padding-top} in the stylesheet
+   * rather than arithmetic here, so native anchor jumps and keyboard focus
+   * clear the fixed navbar too.
+   */
+  document.addEventListener('click', (e) => {
+    const trigger = e.target.closest('a[href^="#"], [data-scroll-to]');
+    if (!trigger) return;
+
+    const id = trigger.dataset.scrollTo
+      ? trigger.dataset.scrollTo
+      : trigger.getAttribute('href').slice(1);
+    if (!id) return;                                   // bare "#" — leave it
+
+    const target = document.getElementById(id);
+    if (!target) return;
+
+    e.preventDefault();
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    // Move keyboard focus with the viewport, otherwise the next Tab press
+    // jumps back to wherever the user was before the scroll.
+    target.setAttribute('tabindex', '-1');
+    target.focus({ preventScroll: true });
   });
 
   // ─── ACTIVE NAV LINK ───────────────────────────────────
@@ -514,12 +715,8 @@ function init() {
   // ─── KEYBOARD FOCUS ────────────────────────────────────
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && menuOpen) {
-      menuOpen = false;
-      hamburger.classList.remove('open');
-      mobileMenu.classList.remove('open');
-      hamburger.setAttribute('aria-expanded', false);
-      document.body.style.overflow = '';
-      hamburger.focus();
+      setMenu(false);
+      if (hamburger) hamburger.focus();
     }
   });
 
@@ -533,21 +730,59 @@ function init() {
   const scrollProgressEl = document.getElementById('scroll-progress');
   const backToTopBtn = document.getElementById('back-to-top');
 
-  window.addEventListener('scroll', () => {
+  /*
+   * Scroll-linked effects, batched into one rAF-throttled handler so layout
+   * reads happen once per frame instead of once per scroll event.
+   */
+  const reduceMotion =
+    window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const parallaxNodes = Array.from(document.querySelectorAll('.parallax-media'));
+  let ticking = false;
+
+  function onScrollFrame() {
+    const scrollTop = window.scrollY;
+    const vh = window.innerHeight;
+
     if (scrollProgressEl) {
-      const scrollTop = window.scrollY;
-      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-      const pct = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+      const docHeight = document.documentElement.scrollHeight - vh;
+      const pct = docHeight > 0 ? Math.min(100, (scrollTop / docHeight) * 100) : 0;
       scrollProgressEl.style.width = pct + '%';
     }
+
     if (backToTopBtn) {
-      if (window.scrollY > 600) {
-        backToTopBtn.classList.add('visible');
-      } else {
-        backToTopBtn.classList.remove('visible');
+      backToTopBtn.classList.toggle('visible', scrollTop > 600);
+    }
+
+    if (!reduceMotion) {
+      // The image is pre-scaled 1.12 in CSS so the drift never exposes an
+      // edge; we write a custom property so CSS keeps ownership of the scale.
+      for (let i = 0; i < parallaxNodes.length; i++) {
+        const node = parallaxNodes[i];
+        const rect = node.getBoundingClientRect();
+        if (rect.bottom < 0 || rect.top > vh) continue;
+        const progress = (rect.top + rect.height / 2 - vh / 2) / (vh / 2 + rect.height / 2);
+        const depth = parseFloat(node.dataset.parallax) || 28;
+        node.style.setProperty('--parallax', (progress * -depth).toFixed(1) + 'px');
       }
     }
-  }, { passive: true });
+
+    ticking = false;
+  }
+
+  function requestScrollFrame() {
+    if (ticking) return;
+    ticking = true;
+    window.requestAnimationFrame(onScrollFrame);
+  }
+
+  window.addEventListener('scroll', requestScrollFrame, { passive: true });
+  window.addEventListener('resize', requestScrollFrame, { passive: true });
+
+  // Run once now. Without this the progress bar sits at 0% and back-to-top
+  // stays hidden when the page is reloaded mid-scroll or opened on a deep
+  // link, until the user happens to scroll again.
+  onScrollFrame();
 
   if (backToTopBtn) {
     backToTopBtn.addEventListener('click', () => {
@@ -598,7 +833,7 @@ function init() {
     if (!panel) return;
     panel.innerHTML = `
       <div class="conf-panel-img">
-        <img src="${d.img}" alt="${d.imgAlt}" loading="lazy" />
+        <img src="${d.img}" alt="${d.imgAlt}" decoding="async" width="1400" height="933" />
       </div>
       <div class="conf-panel-info">
         <div class="conf-panel-recommended">Recommended Setup</div>
@@ -615,7 +850,7 @@ function init() {
           <div class="conf-panel-row-label">Recommendation</div>
           <div class="conf-panel-row-value">${d.recommendation}</div>
         </div>
-        <button class="conf-panel-cta" onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'})">
+        <button class="conf-panel-cta" data-scroll-to="contact">
           Send Conference Inquiry
         </button>
         <a href="tel:+254719063000" class="conf-panel-call">Call events team</a>
@@ -625,6 +860,27 @@ function init() {
 
   const confTabs = document.querySelectorAll('.conf-tab');
   if (confTabs.length) {
+    /*
+     * Warm the other three panel images.
+     *
+     * renderConfPanel() rebuilds the panel with innerHTML, so each tab click
+     * creates a brand-new <img>. These used to carry loading="lazy", which is
+     * the wrong strategy for content the user just asked for: lazy loading is
+     * evaluated during the rendering lifecycle rather than at insertion time,
+     * so the freshly-injected image could sit with an empty currentSrc and
+     * never fetch at all — the panel simply appeared blank. (Reproduced on the
+     * Training and Banquet tabs.)
+     *
+     * The <img> is eager now, and priming the browser cache here means
+     * switching tabs paints instantly instead of flashing empty while the
+     * image downloads.
+     */
+    Object.keys(confData).forEach((key) => {
+      const pre = new Image();
+      pre.decoding = 'async';
+      pre.src = confData[key].img;
+    });
+
     renderConfPanel('boardroom');
     confTabs.forEach(tab => {
       tab.addEventListener('click', () => {
@@ -727,26 +983,68 @@ function init() {
   const galleryGrid = document.querySelector('.gallery-grid');
   if (galleryGrid) galleryGrid.style.transition = 'opacity 0.3s ease';
 
-  const taHeroGrid = document.getElementById('ta-hero-grid');
   const taGalleryModal = document.getElementById('ta-gallery-modal');
   const taGalleryClose = document.getElementById('ta-gallery-close');
-  
-  if (taHeroGrid && taGalleryModal) {
-    taHeroGrid.addEventListener('click', () => {
-      taGalleryModal.classList.add('open');
-      document.body.style.overflow = 'hidden';
-      const allBtn = document.querySelector('.ta-sidebar .gallery-filter-btn[data-filter="all"]');
-      if (allBtn) allBtn.click();
-      else updateGalleryVisibility('all');
-    });
+
+  /*
+   * Gallery modal openers.
+   *
+   * Previously each tile carried an inline onclick that opened the modal and
+   * applied its own filter ('rooms', 'facilities'), AND #ta-hero-grid had a
+   * click listener that applied the 'all' filter. Both ran for a single tile
+   * click — the tile's filter first, then the grid's 'all' as the event
+   * bubbled up — so clicking "Executive Room" opened the gallery unfiltered.
+   * The grid-level listener is gone; one delegated handler now honours
+   * whichever data-gallery-open value was actually clicked.
+   */
+  function openGalleryModal(filter) {
+    if (!taGalleryModal) return;
+    taGalleryModal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    const btn = document.querySelector(
+      '.ta-sidebar .gallery-filter-btn[data-filter="' + filter + '"]'
+    );
+    if (btn) btn.click();
+    else updateGalleryVisibility(filter);
   }
 
-  if (taGalleryClose) {
-    taGalleryClose.addEventListener('click', () => {
-      taGalleryModal.classList.remove('open');
-      document.body.style.overflow = '';
-    });
+  function closeGalleryModal() {
+    if (!taGalleryModal) return;
+    taGalleryModal.classList.remove('open');
+    document.body.style.overflow = '';
   }
+
+  document.addEventListener('click', (e) => {
+    const opener = e.target.closest('[data-gallery-open]');
+    if (!opener) return;
+    e.preventDefault();
+    openGalleryModal(opener.dataset.galleryOpen || 'all');
+  });
+
+  // The tiles were plain <div>s with inline onclick — not focusable and
+  // invisible to screen readers. Promote them to real buttons.
+  document.querySelectorAll('[data-gallery-open]').forEach((el) => {
+    if (el.tagName === 'BUTTON' || el.tagName === 'A') return;
+    el.setAttribute('role', 'button');
+    el.setAttribute('tabindex', '0');
+    el.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        openGalleryModal(el.dataset.galleryOpen || 'all');
+      }
+    });
+  });
+
+  if (taGalleryClose) {
+    taGalleryClose.addEventListener('click', closeGalleryModal);
+  }
+
+  // Escape closes the full-screen gallery, matching the lightbox behaviour.
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && taGalleryModal && taGalleryModal.classList.contains('open')) {
+      closeGalleryModal();
+    }
+  });
 
   function updateGalleryVisibility(filter) {
     galleryItems.forEach(item => {
@@ -780,46 +1078,52 @@ function init() {
   // Apply on initial load
   updateGalleryVisibility('all');
 
-  // ─── BOOKING ENGINE REDIRECT ────────────────────────────
-  const checkAvailBtn = document.getElementById('check-avail-btn');
-  const checkinInput = document.getElementById('checkin');
-  const checkoutInput = document.getElementById('checkout');
-  
-  if (checkAvailBtn && checkinInput && checkoutInput) {
-    checkAvailBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      const ci = checkinInput.value;
-      const co = checkoutInput.value;
-      let baseUrl = 'https://www.bestwestern.com/en_US/book/hotel-rooms.75152.html';
-      if (ci && co) {
-        baseUrl += `?checkIn=${ci}&checkOut=${co}`;
-      }
-      window.open(baseUrl, '_blank');
-    });
-  }
-
-  // ─── CONTACT FORM LOGIC ─────────────────────────────────
-  const contactForm = document.getElementById('contact-form');
-  if (contactForm) {
-    contactForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      // Show success toast
-      showToast('Thank you! The Meridian concierge team will contact you shortly.', 4000);
-      contactForm.reset();
-    });
-  }
+  /* ───────────────────────────────────────────────────────
+   * REMOVED: a second "BOOKING ENGINE REDIRECT" block and a second
+   * "CONTACT FORM LOGIC" block used to sit here.
+   *
+   * They re-declared `const checkinInput` / `const checkoutInput`, which
+   * were already declared with `const` near the top of this same init()
+   * scope. That is a *parse-time* SyntaxError, not a runtime one, so V8
+   * rejected this entire file before executing a single statement:
+   * init() was never even defined. The result was a page with no navbar
+   * (it is CSS-hidden until JS reveals it), no slideshow, no booking
+   * widget, no lightbox, no conference planner and no explorer — which
+   * read as "everything is broken" when it was really one bad edit.
+   *
+   * Both blocks were redundant anyway: the booking redirect is handled
+   * above (and additionally forwards the guest count), and the contact
+   * form handler above actually validates input instead of just firing a
+   * toast. Keeping both would also have double-bound the listeners,
+   * opening two booking tabs per click and showing two toasts per submit.
+   * ─────────────────────────────────────────────────────── */
 
   // ─── PREMIUM MAGNETIC HOVER ─────────────────────────────
-  document.querySelectorAll('.hero-btn-primary, .hero-btn-ghost').forEach(btn => {
-    btn.addEventListener('mousemove', (e) => {
-      const rect = btn.getBoundingClientRect();
-      const x = e.clientX - rect.left - rect.width / 2;
-      const y = e.clientY - rect.top - rect.height / 2;
-      btn.style.transform = `translate(${x * 0.15}px, ${y * 0.15}px)`;
+  /*
+   * Desktop-only, and skipped under reduced motion.
+   *
+   * On touch devices a tap fires a synthetic mousemove, so buttons used to
+   * lurch sideways under the finger and then stay offset — mouseleave never
+   * arrives without a real pointer, leaving the CTA permanently crooked.
+   */
+  const finePointer =
+    window.matchMedia && window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+
+  if (finePointer && !reduceMotion) {
+    document.querySelectorAll('.hero-btn-primary, .hero-btn-ghost').forEach(btn => {
+      btn.addEventListener('mousemove', (e) => {
+        const rect = btn.getBoundingClientRect();
+        const x = e.clientX - rect.left - rect.width / 2;
+        const y = e.clientY - rect.top - rect.height / 2;
+        // Cap the pull so a wide button cannot drift far from its slot.
+        const dx = Math.max(-10, Math.min(10, x * 0.15));
+        const dy = Math.max(-8, Math.min(8, y * 0.15));
+        btn.style.transform = `translate(${dx.toFixed(1)}px, ${dy.toFixed(1)}px)`;
+      });
+
+      btn.addEventListener('mouseleave', () => { btn.style.transform = ''; });
+      // Blur/scroll can steal the pointer without firing mouseleave.
+      btn.addEventListener('blur', () => { btn.style.transform = ''; });
     });
-    
-    btn.addEventListener('mouseleave', () => {
-      btn.style.transform = '';
-    });
-  });
+  }
 }

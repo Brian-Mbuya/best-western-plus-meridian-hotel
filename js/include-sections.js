@@ -23,13 +23,16 @@
     ['mobilemenu-mount', 'sections/mobilemenu.html'],
     ['hero-mount', 'sections/hero.html'],
     ['booking-mount', 'sections/booking.html'],
+    ['intro-mount', 'sections/intro.html'],
     ['rooms-mount', 'sections/rooms.html'],
     ['dining-mount', 'sections/dining.html'],
     ['meetings-mount', 'sections/meetings.html'],
+    ['amenities-mount', 'sections/amenities.html'],
     ['rooftop-mount', 'sections/rooftop.html'],
     ['neighborhood-mount', 'sections/neighborhood.html'],
     ['reviews-mount', 'sections/reviews.html'],
     ['gallery-mount', 'sections/gallery.html'],
+    ['location-mount', 'sections/location.html'],
     ['contact-mount', 'sections/contact.html'],
     ['footer-mount', 'sections/footer.html'],
   ];
@@ -56,5 +59,18 @@
     document.dispatchEvent(new CustomEvent('sections:ready'));
   }
 
-  loadAll();
+  /*
+   * Published as a promise as well as an event, and the promise is what
+   * script.js actually waits on.
+   *
+   * An event-only handoff is a latent race: it is only safe while script.js
+   * happens to be a blocking <script> parsed immediately after this one. The
+   * moment anyone adds `defer`/`async` or moves it, 'sections:ready' can fire
+   * before the listener is attached, the event is lost forever, and init()
+   * never runs — leaving the markup intact but every feature dead.
+   *
+   * A promise cannot be missed: .then() resolves correctly whether attached
+   * before or after settlement.
+   */
+  window.sectionsReady = loadAll();
 })();

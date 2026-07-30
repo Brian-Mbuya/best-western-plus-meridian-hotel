@@ -70,24 +70,32 @@
     href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap"
     rel="stylesheet" />
 
-  <link rel="stylesheet" href="css/styles.css?v=3.1" />
+  <link rel="stylesheet" href="css/styles.css?v=4.0" />
 
-  <!-- Fail-safe: pure CSS hides the intro after 3.5s even if ALL JavaScript fails -->
-  <style>
-    @keyframes introSafetyHide {
-      0%, 95% { visibility: visible; pointer-events: all; }
-      100%    { visibility: hidden; pointer-events: none; }
+  <!--
+    PROGRESSIVE-ENHANCEMENT GATE.
+
+    Scroll-reveal styles (opacity:0 until revealed) are scoped to html.js,
+    which only exists if this inline script runs. With JS disabled, blocked,
+    or failed to download, the stylesheet hides nothing and the site renders
+    as plain static HTML.
+
+    Inline and un-deferred on purpose: it must apply before first paint,
+    otherwise content would flash visible and then be hidden.
+
+    The intro overlay now ships with the `hidden` attribute and is un-hidden
+    by the controller in <body>. That replaces the old 3.5s CSS "safety hide"
+    animation — instead of showing a full-screen panel and racing a timer to
+    remove it, a JS failure simply means the panel never appears at all.
+  -->
+  <script>
+    document.documentElement.classList.add('js');
+    // Reveal-on-scroll needs IntersectionObserver. Rather than ship a
+    // polyfill, opt old browsers out of hiding anything in the first place.
+    if (!('IntersectionObserver' in window)) {
+      document.documentElement.classList.add('no-reveal');
     }
-    #page-intro {
-      animation: introSafetyHide 3.5s linear forwards;
-    }
-    /* When JS dismisses, hide immediately with no conflicting animation */
-    #page-intro.done {
-      visibility: hidden !important;
-      pointer-events: none !important;
-      animation: none !important;
-    }
-  </style>
+  </script>
 </head>
 
 <body>
@@ -103,60 +111,116 @@
   </button>
 
   <!-- ============================================================
-       PAGE INTRO — luxury brand reveal
-       Pure CSS animation handles the fade-out. JS can dismiss early.
+       PAGE INTRO — gold-rule logo reveal
+
+       The panel background is deliberately EXACTLY var(--maroon)
+       (#8C1938), because gallery/logo1.jpg is white/gold artwork on a
+       #8C1938 square. Matching it makes the JPG's edges disappear so the
+       mark reads like a transparent PNG. The old curtain painted
+       --maroon-dark (#5C1226), which rendered the logo as a visibly
+       lighter square patch. Do not change .intro-field's base colour
+       without re-exporting the logo.
   ============================================================ -->
-  <div id="page-intro" aria-hidden="true" role="presentation">
-    <div class="intro-curtain-l"></div>
-    <div class="intro-curtain-r"></div>
-    <div class="intro-logo-wrap">
-      <img src="gallery/logo1.jpg" alt="" />
-      <div class="intro-tagline">Nairobi · Est. 1994</div>
+  <div id="page-intro" aria-hidden="true" role="presentation" hidden>
+    <div class="intro-field"></div>
+    <div class="intro-stage">
+      <span class="intro-rule" aria-hidden="true"></span>
+      <img class="intro-mark" src="gallery/logo1.jpg" alt="" width="447" height="447" />
+      <p class="intro-name">Best Western Plus Meridian</p>
+      <p class="intro-tagline">Nairobi · Est. 1994</p>
     </div>
-    <div class="intro-border"></div>
   </div>
 
-  <!-- INLINE intro dismissal — no external file dependency, cannot be cached stale -->
+  <!-- INLINE intro controller — no external file, so it cannot be cached stale.
+       Exposes window.introComplete as a PROMISE. The previous version fired an
+       'intro:finished' EVENT that script.js subscribed to from inside init();
+       since init() only runs after sections:ready, a slow section load meant
+       the event fired before anyone listened and the hero was never revealed —
+       it just sat at opacity 0. A promise cannot be missed. -->
   <script>
-  (function() {
+  window.introComplete = (function () {
     var intro = document.getElementById('page-intro');
-    if (!intro) return;
+    var reduced = window.matchMedia
+      && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
     var seen = false;
-    try { seen = sessionStorage.getItem('introSeen') === '1'; } catch(e) {}
-    if (seen) {
-      intro.style.display = 'none';
-      window._skipIntroAnimation = true;
-      return;
+    // Private-mode Safari throws here — never let storage decide whether the
+    // site renders.
+    try { seen = sessionStorage.getItem('introSeen') === '1'; } catch (e) {}
+
+    if (!intro || seen || reduced) {
+      if (intro) intro.hidden = true;
+      return Promise.resolve({ played: false });
     }
-    document.body.style.overflow = 'hidden';
-    var done = false;
-    function dismiss() {
-      if (done) return;
-      done = true;
-      try { sessionStorage.setItem('introSeen', '1'); } catch(e) {}
-      document.body.style.overflow = '';
-      intro.classList.add('done');
-      setTimeout(function() { intro.style.display = 'none'; }, 900);
-      document.dispatchEvent(new Event('intro:finished'));
-    }
-    intro.addEventListener('click', dismiss);
-    setTimeout(dismiss, 2600);
+
+    return new Promise(function (resolve) {
+      var HOLD_MS = 2100;   // when the exit starts
+      var EXIT_MS = 1050;   // stage lift + field rise (matches the CSS)
+
+      intro.hidden = false;
+      void intro.offsetWidth;          // commit the un-hide before animating
+      intro.classList.add('is-playing');
+      document.body.style.overflow = 'hidden';
+
+      var done = false;
+      var timer = setTimeout(dismiss, HOLD_MS);
+      intro.addEventListener('click', dismiss);
+      document.addEventListener('keydown', onKey);
+
+      function onKey(e) {
+        if (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ') dismiss();
+      }
+
+      function dismiss() {
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        intro.removeEventListener('click', dismiss);
+        document.removeEventListener('keydown', onKey);
+        try { sessionStorage.setItem('introSeen', '1'); } catch (e) {}
+
+        document.body.style.overflow = '';
+        intro.classList.add('is-leaving');
+
+        // Resolve now rather than after the exit finishes, so the navbar and
+        // hero rise *behind* the departing panel instead of waiting for it.
+        resolve({ played: true });
+
+        setTimeout(function () {
+          intro.classList.remove('is-playing', 'is-leaving');
+          intro.hidden = true;
+        }, EXIT_MS);
+      }
+    });
   })();
   </script>
 
   <div id="navbar-mount"></div>
   <div id="mobilemenu-mount"></div>
 
+  <!--
+    Section order. intro/amenities/location were re-added here: the nav, the
+    mobile menu and the footer all still linked to #about-intro, #amenities
+    and #location, but the mounts had been dropped, so seven navigation links
+    silently scrolled nowhere. The fragment files were still present and
+    complete — only the mount points were missing.
+
+    (sections/business.html is deliberately NOT mounted: nothing links to
+    #business, so that one was retired on purpose.)
+  -->
   <main id="main-content">
     <div id="hero-mount"></div>
     <div id="booking-mount"></div>
+    <div id="intro-mount"></div>
     <div id="rooms-mount"></div>
     <div id="dining-mount"></div>
     <div id="meetings-mount"></div>
+    <div id="amenities-mount"></div>
     <div id="rooftop-mount"></div>
     <div id="neighborhood-mount"></div>
     <div id="reviews-mount"></div>
     <div id="gallery-mount"></div>
+    <div id="location-mount"></div>
     <div id="contact-mount"></div>
   </main>
 
@@ -165,8 +229,13 @@
   <div class="toast" id="toast" style="display:none;" role="alert" aria-live="assertive"></div>
 
   <!-- Section loader runs first and renders each include before page-behavior script runs -->
-  <script src="js/include-sections.js"></script>
-  <script src="js/script.js?v=3.0"></script>
+  <!-- Both scripts carry the same ?v= cache-buster. include-sections.js was
+       unversioned, so a browser could serve a stale copy of it alongside a
+       fresh script.js after a deploy — leaving the two files out of sync
+       (e.g. script.js waiting on window.sectionsReady that the cached loader
+       never publishes). Bump both together. -->
+  <script src="js/include-sections.js?v=4.0"></script>
+  <script src="js/script.js?v=4.0"></script>
 </body>
 
 </html>
