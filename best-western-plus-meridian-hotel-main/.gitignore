@@ -1,0 +1,10 @@
+# Exclude non-image files accidentally placed in gallery folders
+gallery/**/*.exe
+gallery/**/*.vsix
+gallery/**/*.zip
+gallery/**/*.msi
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
