@@ -599,26 +599,48 @@ function init() {
     e.target.reset();
   });
 
-  // ─── EVENT ENQUIRY FORM (Meetings & Events) ────────────
-  // Added to replace the previous mailto:-based form, which silently
-  // failed for any guest without a configured desktop email client and
-  // exposed the destination address in a plain GET query string. Same
-  // caveat as the contact form above: this needs a real backend before
-  // launch to actually deliver the enquiry anywhere.
-  const eventForm = document.getElementById('event-enquiry-form');
-  if (eventForm) {
-    eventForm.addEventListener('submit', (e) => {
+  // ─── CONFERENCE ENQUIRY FORM (Meetings & Events) ───────
+  /*
+   * The id here was wrong. This handler looked for '#event-enquiry-form' with
+   * fields '#event-subject' / '#event-guests', but the markup in
+   * sections/meetings.html defines '#conf-inquiry-form' with '#conf-event-name'
+   * and '#conf-event-date'. Nothing matched, so no submit handler was ever
+   * attached and the "Send Conference Inquiry" button fell through to a native
+   * GET submit — reloading the page with ?event=…&date=… in the URL and losing
+   * whatever the guest had typed.
+   *
+   * Same caveat as the contact form: this validates and confirms, but does not
+   * transmit anywhere yet. A real backend endpoint is required before launch.
+   */
+  const confForm = document.getElementById('conf-inquiry-form');
+  if (confForm) {
+    confForm.addEventListener('submit', (e) => {
       e.preventDefault();
-      const subjEl = document.getElementById('event-subject');
-      const guestEl = document.getElementById('event-guests');
-      const subject = subjEl ? subjEl.value.trim() : '';
-      const guests = guestEl ? guestEl.value : '';
-      if (guests && Number(guests) > 350) {
-        showToast('Kyber Hall holds up to 350 guests — please call us directly for larger events.');
+      const nameEl = document.getElementById('conf-event-name');
+      const dateEl = document.getElementById('conf-event-date');
+      const eventName = nameEl ? nameEl.value.trim() : '';
+      const eventDate = dateEl ? dateEl.value : '';
+
+      if (!eventName) {
+        showToast('Please tell us the event or company name so we can help.');
+        if (nameEl) nameEl.focus();
         return;
       }
-      showToast('Thank you' + (subject ? ' — "' + subject + '"' : '') + '. Our events team will follow up shortly.');
-      eventForm.reset();
+      // Guard against enquiries for dates that have already passed.
+      if (eventDate) {
+        const [y, m, d] = eventDate.split('-').map(Number);
+        const chosen = new Date(y, m - 1, d);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        if (chosen < today) {
+          showToast('That date has already passed — please pick an upcoming date.');
+          if (dateEl) dateEl.focus();
+          return;
+        }
+      }
+
+      showToast('Thank you — "' + eventName + '". Our events team will follow up shortly.');
+      confForm.reset();
     });
   }
 
@@ -811,7 +833,7 @@ function init() {
     if (!panel) return;
     panel.innerHTML = `
       <div class="conf-panel-img">
-        <img src="${d.img}" alt="${d.imgAlt}" loading="lazy" />
+        <img src="${d.img}" alt="${d.imgAlt}" decoding="async" width="1400" height="933" />
       </div>
       <div class="conf-panel-info">
         <div class="conf-panel-recommended">Recommended Setup</div>
@@ -838,6 +860,27 @@ function init() {
 
   const confTabs = document.querySelectorAll('.conf-tab');
   if (confTabs.length) {
+    /*
+     * Warm the other three panel images.
+     *
+     * renderConfPanel() rebuilds the panel with innerHTML, so each tab click
+     * creates a brand-new <img>. These used to carry loading="lazy", which is
+     * the wrong strategy for content the user just asked for: lazy loading is
+     * evaluated during the rendering lifecycle rather than at insertion time,
+     * so the freshly-injected image could sit with an empty currentSrc and
+     * never fetch at all — the panel simply appeared blank. (Reproduced on the
+     * Training and Banquet tabs.)
+     *
+     * The <img> is eager now, and priming the browser cache here means
+     * switching tabs paints instantly instead of flashing empty while the
+     * image downloads.
+     */
+    Object.keys(confData).forEach((key) => {
+      const pre = new Image();
+      pre.decoding = 'async';
+      pre.src = confData[key].img;
+    });
+
     renderConfPanel('boardroom');
     confTabs.forEach(tab => {
       tab.addEventListener('click', () => {
